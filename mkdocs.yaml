@@ -1,0 +1,13 @@
+site_name: Основы распределённых вычислений 2025
+repo_url: https://github.com/ds-practicum-2025/proj-template
+theme:
+  name: material
+nav:
+  - Главная: index.md
+  - Техническое решение: tr.md
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - admonition
+  - codehilite
