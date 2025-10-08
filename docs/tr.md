@@ -1,5 +1,6 @@
+
 ﻿
-# Техническое решение проекта «Название проекта»
+# Техническое решение проекта «Moonshine»
 
   
   
@@ -150,11 +151,79 @@
   
 
 ## Архитектура системы
+Основные компоненты:
+
+1.  **API Gateway** — входная точка в систему, отвечает за маршрутизацию клиентских запросов.
+    
+2.  **User Service** — сервис управления пользователями, аутентификацией и профилями.
+    
+3.  **Ad Service** — основной сервис, отвечающий за создание, редактирование и поиск объявлений.
+    
+4.  **Media Service** — сервис управления медиафайлами (изображениями товаров).
+    
+5.  **Marketplace DB** — основная база данных.
+    
+6.  **Message Broker** — брокер сообщений, обеспечивающий асинхронную передачу данных между сервисами.
+
+```mermaid
+  graph  TD
+
+subgraph  Client
+
+WebApp[Web  App]
+
+end
+
+subgraph  Gateway
+
+APIGateway[API  Gateway]
+
+end
+
+subgraph  Services
+
+UserService[User  Service]
+
+AdService[Ad  Service]
+
+MediaService[Media  Service]
+
+MessageBroker[Message  Broker]
+
+end
+
+subgraph  Databases
+
+MarketplaceDB[(Marketplace DB<br/>PostgreSQL)]
+
+end
 
   
 
-  
+WebApp-->|REST/HTTP|APIGateway
 
+APIGateway-->|HTTP|UserService
+
+APIGateway-->|HTTP|AdService
+
+APIGateway-->|HTTP|MediaService
+
+UserService-->|SQL|MarketplaceDB
+
+AdService-->|SQL|MarketplaceDB
+
+MediaService-->|SQL|MarketplaceDB
+
+AdService-->|Events|MessageBroker
+
+MessageBroker-->|Events|UserService
+
+MessageBroker-->|Events|MediaService
+
+UserService-.->|JWT  Validation|AdService
+
+MediaService-.->|File  Upload|AdService
+```
 ---
 
   
@@ -162,10 +231,122 @@
   
 
 ## Технические сценарии
+### Сценарий: создание объявления с изображениями
+
+1.  Клиент отправляет в API Gateway запрос POST /api/ads с данными объявления и изображениями
+    
+2.  API Gateway перенаправляет запрос в сервис Ad Service
+    
+3.  Ad Service валидирует JWT токен через User Service
+    
+4.  Ad Service сохраняет основную информацию об объявлении в базу данных
+    
+5.  Ad Service отправляет изображения в Media Service для обработки и сохранения
+    
+6.  Media Service сохраняет изображения и возвращает ссылки
+    
+7.  Ad Service обновляет объявление с ссылками на изображения
+    
+8.  Ad Service публикует событие о создании нового объявления
+    
+9.  Пользователь получает подтверждение о успешном создании объявления
+```mermaid
+sequenceDiagram
+
+participant  Client
+
+participant  APIGateway
+
+participant  AdService
+
+participant  UserService
+
+participant  MediaService
+
+participant  MarketplaceDB
+
+participant  MessageBroker
 
   
 
+Client->>APIGateway: POST /api/ads  (JWT + данные + изображения)
+
+APIGateway->>AdService: Создание объявления
+
+AdService->>UserService: Валидация JWT токена
+
+UserService-->>AdService: user_id  (валидный)
+
+AdService->>MarketplaceDB: INSERT  INTO  ads  (основные данные)
+
+MarketplaceDB-->>AdService: ad_id
+
+AdService->>MediaService: Загрузка изображений
+
+MediaService->>MarketplaceDB: INSERT  INTO  media_files/data
+
+MarketplaceDB-->>MediaService: media_ids
+
+MediaService-->>AdService: URLs изображений
+
+AdService->>MarketplaceDB: UPDATE  ads  SET  media_ids
+
+AdService->>MessageBroker: Событие "ad_created"
+
+AdService-->>APIGateway: Успех
+
+APIGateway-->>Client: Объявление создано (ad_id)
+```
+### Сценарий: регистрация нового пользователя
+
+1.  Клиент отправляет в API Gateway запрос POST /api/auth/register с email и паролем
+    
+2.  API Gateway перенаправляет запрос в User Service
+    
+3.  User Service проверяет уникальность email
+    
+4.  User Service хеширует пароль и сохраняет пользователя в базу данных
+    
+5.  User Service генерирует JWT токен
+    
+6.  Пользователь получает токен для последующей аутентификации
+```mermaid
+sequenceDiagram
+
+participant  Client
+
+participant  APIGateway
+
+participant  UserService
+
+participant  MarketplaceDB
+
   
+
+Client->>APIGateway: POST /api/auth/register<br/>{email: "user@example.com", password: "123456"}
+
+APIGateway->>UserService: Регистрация пользователя
+
+UserService->>UserService: Валидация формата email
+
+UserService->>UserService: Валидация пароля
+
+UserService->>MarketplaceDB: Проверка уникальности email
+
+MarketplaceDB-->>UserService: Email свободен
+
+UserService->>UserService: Хеширование пароля
+
+UserService->>MarketplaceDB: Сохранение пользователя
+
+MarketplaceDB-->>UserService: user_id: 123
+
+UserService->>UserService: Генерация JWT токена
+
+UserService-->>APIGateway: Created + JWT
+
+APIGateway-->>Client: Успешная регистрация
+  ```
 
 ---
 
