@@ -7,9 +7,12 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func Connect() *pgxpool.Pool {
+	_ = godotenv.Load()
+
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		dsn = "postgres://user:password@localhost:5432/user_service?sslmode=disable"

@@ -11,6 +11,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type userServiceServer struct {
@@ -49,6 +50,8 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	proto.RegisterUserServiceServer(grpcServer, newServer())
+
+	reflection.Register(grpcServer)
 
 	fmt.Println("✅ UserService running on port 50051")
 	if err := grpcServer.Serve(lis); err != nil {
