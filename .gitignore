@@ -12,3 +12,6 @@ bin/
 .idea/
 *.swp
 *.swo
+
+# Env
+.env
