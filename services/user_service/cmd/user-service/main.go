@@ -2,6 +2,9 @@ package main
 
 import (
 	"78-pflops/services/user_service/gen/proto"
+	"78-pflops/services/user_service/internal/db"
+	"78-pflops/services/user_service/internal/repository"
+	"78-pflops/services/user_service/internal/service"
 	"context"
 	"fmt"
 	"log"
@@ -12,42 +15,30 @@ import (
 
 type userServiceServer struct {
 	proto.UnimplementedUserServiceServer
+	service *service.UserService
+}
+
+func newServer() *userServiceServer {
+	conn := db.Connect()
+	repo := repository.NewUserRepository(conn)
+	svc := service.NewUserService(repo)
+	return &userServiceServer{service: svc}
 }
 
 func (s *userServiceServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
-	return &proto.RegisterResponse{
-		UserId: "123",
-		Token:  "fake-jwt-token",
-	}, nil
+	userID, token, err := s.service.Register(ctx, req.Email, req.Password, "New User")
+	if err != nil {
+		return nil, err
+	}
+	return &proto.RegisterResponse{UserId: userID, Token: token}, nil
 }
 
 func (s *userServiceServer) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
-	return &proto.LoginResponse{Token: "fake-jwt-token"}, nil
-}
-
-func (s *userServiceServer) ValidateToken(ctx context.Context, req *proto.ValidateRequest) (*proto.ValidateResponse, error) {
-	return &proto.ValidateResponse{UserId: "123", Valid: true}, nil
-}
-
-func (s *userServiceServer) GetProfile(ctx context.Context, req *proto.GetProfileRequest) (*proto.GetProfileResponse, error) {
-	return &proto.GetProfileResponse{
-		UserId: req.UserId,
-		Name:   "Test User",
-	}, nil
-}
-
-func (s *userServiceServer) UpdateProfile(ctx context.Context, req *proto.UpdateProfileRequest) (*proto.UpdateProfileResponse, error) {
-	return &proto.UpdateProfileResponse{
-		Success: true,
-		Message: "Profile updated",
-	}, nil
-}
-
-func (s *userServiceServer) DeleteUser(ctx context.Context, req *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
-	return &proto.DeleteUserResponse{
-		Success: true,
-		Message: "User deleted",
-	}, nil
+	token, err := s.service.Login(ctx, req.Email, req.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.LoginResponse{Token: token}, nil
 }
 
 func main() {
@@ -57,9 +48,9 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	proto.RegisterUserServiceServer(grpcServer, &userServiceServer{})
+	proto.RegisterUserServiceServer(grpcServer, newServer())
 
-	fmt.Println("UserService gRPC server running on port 50051")
+	fmt.Println("✅ UserService running on port 50051")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
