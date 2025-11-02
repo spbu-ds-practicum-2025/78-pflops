@@ -1,7 +1,7 @@
 package main
 
 import (
-	"78-pflops/services/user_service/api/proto/api/proto"
+	"78-pflops/services/user_service/gen/proto"
 	"context"
 	"fmt"
 	"log"
@@ -15,7 +15,6 @@ type userServiceServer struct {
 }
 
 func (s *userServiceServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
-	// Заглушка: просто возвращаем ID и токен
 	return &proto.RegisterResponse{
 		UserId: "123",
 		Token:  "fake-jwt-token",

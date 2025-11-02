@@ -1,25 +1,31 @@
-# Путь до proto-файлов
-PROTO_DIR=api/proto
+PROTO_DIR=proto
+OUT_DIR=gen
+GO_MODULE=78-pflops/services/user_service
 
-# Каталог, куда кладём сгенерированные файлы
-OUT_DIR=api/proto
+.PHONY: proto deps clean help
 
-# Команда генерации .pb.go файлов
 proto:
 	@echo "Генерация gRPC и protobuf файлов..."
-	protoc --go_out=$(OUT_DIR) --go_opt=paths=source_relative \
-	        --go-grpc_out=$(OUT_DIR) --go-grpc_opt=paths=source_relative \
-	        $(PROTO_DIR)/*.proto
+	@mkdir -p $(OUT_DIR)
+	protoc --go_out=$(OUT_DIR) --go_opt=module=$(GO_MODULE) \
+	       --go-grpc_out=$(OUT_DIR) --go-grpc_opt=module=$(GO_MODULE) \
+	       $(PROTO_DIR)/*.proto
 	@echo "Генерация завершена"
 
-# Установка необходимых плагинов
+
 deps:
 	@echo "Установка плагинов protoc..."
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	@echo "✅ Плагины установлены"
 
-# Очистка сгенерированных файлов (опционально)
+
 clean:
-	rm -f $(OUT_DIR)/*.pb.go
+	rm -f $(OUT_DIR)/$(PROTO_DIR)/*.pb.go
 	@echo "Очищено"
+
+help:
+	@echo "Доступные команды:"
+	@echo "  make proto   - Генерация gRPC и protobuf файлов"
+	@echo "  make deps    - Установка необходимых плагинов"
+	@echo "  make clean   - Очистка сгенерированных файлов"

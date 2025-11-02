@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package user;
+option go_package = "78-pflops/services/user_service/proto;proto";
+
+service UserService {
+    rpc Register (RegisterRequest) returns (RegisterResponse);
+    rpc Login (LoginRequest) returns (LoginResponse);
+    rpc ValidateToken (ValidateRequest) returns (ValidateResponse);
+    rpc GetProfile (GetProfileRequest) returns (GetProfileResponse);
+    rpc UpdateProfile (UpdateProfileRequest) returns (UpdateProfileResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message RegisterRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message RegisterResponse {
+    string user_id = 1;
+    string token = 2;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string token = 1;
+}
+
+message ValidateRequest {
+    string token = 1;
+}
+
+message ValidateResponse {
+    string user_id = 1;
+    bool valid = 2;
+}
+
+message GetProfileRequest {
+    string user_id = 1;
+}
+
+message GetProfileResponse {
+    string user_id = 1;
+    string name = 2;
+    // TODO
+}
+
+message UpdateProfileRequest {
+    string user_id = 1;
+    string name = 2;
+    // TODO
+}
+
+message UpdateProfileResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message DeleteUserRequest {
+    string user_id = 1;
+    string password = 2;
+}
+
+message DeleteUserResponse {
+    bool success = 1;
+    string message = 2;
+}
+
