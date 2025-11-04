@@ -25,6 +25,14 @@ func (s *UserService) Register(ctx context.Context, email, password, name string
 		return "", "", err
 	}
 
+	if !utils.IsValidEmail(email) {
+		return "", "", errors.New("invalid email format")
+	}
+
+	if !utils.IsValidPassword(password) {
+		return "", "", errors.New("password must be at least 8 characters long and contain at least one special character")
+	}
+
 	user := &model.User{
 		ID:           uuid.NewString(),
 		Email:        email,
