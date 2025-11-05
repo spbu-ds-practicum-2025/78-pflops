@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package ad_service;
+
+option go_package = "ad_service/gen";
+
+service AdService {
+  rpc ListAds(ListAdsRequest) returns (ListAdsResponse);
+  rpc GetAd(GetAdRequest) returns (GetAdResponse);
+  rpc CreateAd(CreateAdRequest) returns (CreateAdResponse);
+  rpc UpdateAd(UpdateAdRequest) returns (UpdateAdResponse);
+  rpc DeleteAd(DeleteAdRequest) returns (DeleteAdResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message Ad {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  double price = 4;
+  string user_id = 5;
+  AdStatus status = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+enum AdStatus {
+  ACTIVE = 0;
+  DRAFT = 1;
+}
+
+message ListAdsRequest {}
+
+message ListAdsResponse {
+  repeated Ad ads = 1;
+  int32 total = 2;
+}
+
+message GetAdRequest {
+  string id = 1;
+}
+
+message GetAdResponse {
+  Ad ad = 1;
+}
+
+message CreateAdRequest {
+  string title = 1;
+  string description = 2;
+  double price = 3;
+  string user_id = 4;
+}
+
+message CreateAdResponse {
+  Ad ad = 1;
+}
+
+message UpdateAdRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  double price = 4;
+}
+
+message UpdateAdResponse {
+  Ad ad = 1;
+}
+
+message DeleteAdRequest {
+  string id = 1;
+}
+
+message DeleteAdResponse {
+  bool success = 1;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;
+}
