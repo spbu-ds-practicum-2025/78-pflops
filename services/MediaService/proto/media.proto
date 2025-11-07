@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package media;
+
+service MediaService {
+  rpc UploadMedia(UploadMediaRequest) returns (UploadMediaResponse);
+  rpc GetMedia(GetMediaRequest) returns (GetMediaResponse);
+  rpc DeleteMedia(DeleteMediaRequest) returns (DeleteMediaResponse);
+  rpc ListMedia(ListMediaRequest) returns (ListMediaResponse);
+  rpc GetUrl(GetUrlRequest) returns (GetUrlResponse);
+}
+
+message UploadMediaRequest {
+  string user_id = 1;
+  bytes file_bytes = 2;
+  string mime_type = 3;
+  string file_name = 4;
+}
+
+message UploadMediaResponse {
+  string media_id = 1;
+  string message = 2;
+  string url = 3;
+}
+
+message GetMediaRequest {
+  string media_id = 1;
+}
+
+message GetMediaResponse {
+  string user_id = 1;
+  bytes file_bytes = 2;
+  string mime_type = 3;
+  string file_name = 4;
+}
+
+message DeleteMediaRequest {
+  string media_id = 1;
+  string user_id = 2;
+}
+
+message DeleteMediaResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+message ListMediaRequest {
+  string user_id = 1;
+}
+
+message ListMediaResponse {
+  repeated MediaItem media_items = 1;
+}
+
+message MediaItem {
+  string media_id = 1;
+  string file_name = 2;
+  string mime_type = 3;
+  string upload_date = 4;
+  string url = 5;
+}
+
+message GetUrlRequest {
+  string media_id = 1;
+}
+
+message GetUrlResponse {
+  string url = 1;
+  string media_id = 2;
+}
