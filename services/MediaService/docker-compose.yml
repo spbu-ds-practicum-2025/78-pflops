@@ -1,0 +1,35 @@
+services:
+  media-service:
+    build: .
+    ports:
+      - "50051:50051"
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=media-service
+    depends_on:
+      - minio
+    networks:
+      - media-network
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server --console-address ":9001" /data
+    networks:
+      - media-network
+
+volumes:
+  minio_data:
+
+networks:
+  media-network:
+    driver: bridge
