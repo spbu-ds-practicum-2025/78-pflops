@@ -8,6 +8,7 @@ import (
 	"78-pflops/services/user_service/internal/repository"
 	"78-pflops/services/user_service/internal/utils"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/google/uuid"
 )
 
@@ -20,6 +21,13 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) Register(ctx context.Context, email, password, name string) (string, string, error) {
+	// Check if email already exists to return a Go error before hitting DB constraints
+	if existing, err := s.repo.GetByEmail(ctx, email); err == nil && existing != nil {
+		return "", "", errors.New("email already exists")
+	} else if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return "", "", err
+	}
+
 	hash, err := utils.HashPassword(password)
 	if err != nil {
 		return "", "", err
@@ -50,7 +58,9 @@ func (s *UserService) Register(ctx context.Context, email, password, name string
 
 func (s *UserService) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := s.repo.GetByEmail(ctx, email)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", errors.New("invalid credentials")
+	} else if err != nil {
 		return "", err
 	}
 
