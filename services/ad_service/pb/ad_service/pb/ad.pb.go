@@ -9,6 +9,7 @@ package pb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -147,12 +148,10 @@ func (x *Ad) GetUpdatedAt() int64 {
 
 type CreateAdRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Price         int64                  `protobuf:"varint,3,opt,name=price,proto3" json:"price,omitempty"`
-	CategoryId    string                 `protobuf:"bytes,4,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	Condition     string                 `protobuf:"bytes,5,opt,name=condition,proto3" json:"condition,omitempty"`
-	Images        [][]byte               `protobuf:"bytes,6,rep,name=images,proto3" json:"images,omitempty"` // raw bytes for MediaService pass-through
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -187,6 +186,13 @@ func (*CreateAdRequest) Descriptor() ([]byte, []int) {
 	return file_proto_ad_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *CreateAdRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 func (x *CreateAdRequest) GetTitle() string {
 	if x != nil {
 		return x.Title
@@ -206,27 +212,6 @@ func (x *CreateAdRequest) GetPrice() int64 {
 		return x.Price
 	}
 	return 0
-}
-
-func (x *CreateAdRequest) GetCategoryId() string {
-	if x != nil {
-		return x.CategoryId
-	}
-	return ""
-}
-
-func (x *CreateAdRequest) GetCondition() string {
-	if x != nil {
-		return x.Condition
-	}
-	return ""
-}
-
-func (x *CreateAdRequest) GetImages() [][]byte {
-	if x != nil {
-		return x.Images
-	}
-	return nil
 }
 
 type CreateAdResponse struct {
@@ -361,35 +346,33 @@ func (x *GetAdResponse) GetAd() *Ad {
 	return nil
 }
 
-type SearchAdsRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Text            string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
-	CategoryId      string                 `protobuf:"bytes,2,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	PriceMin        int64                  `protobuf:"varint,3,opt,name=price_min,json=priceMin,proto3" json:"price_min,omitempty"`
-	PriceMax        int64                  `protobuf:"varint,4,opt,name=price_max,json=priceMax,proto3" json:"price_max,omitempty"`
-	Condition       string                 `protobuf:"bytes,5,opt,name=condition,proto3" json:"condition,omitempty"`
-	MinSellerRating float64                `protobuf:"fixed64,6,opt,name=min_seller_rating,json=minSellerRating,proto3" json:"min_seller_rating,omitempty"`
-	Page            int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize        int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Sort            string                 `protobuf:"bytes,9,opt,name=sort,proto3" json:"sort,omitempty"` // price_asc, price_desc, created_desc
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+type ListAdsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	CategoryId    string                 `protobuf:"bytes,2,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	PriceMin      int64                  `protobuf:"varint,3,opt,name=price_min,json=priceMin,proto3" json:"price_min,omitempty"`
+	PriceMax      int64                  `protobuf:"varint,4,opt,name=price_max,json=priceMax,proto3" json:"price_max,omitempty"`
+	Condition     string                 `protobuf:"bytes,5,opt,name=condition,proto3" json:"condition,omitempty"`
+	Page          int32                  `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SearchAdsRequest) Reset() {
-	*x = SearchAdsRequest{}
+func (x *ListAdsRequest) Reset() {
+	*x = ListAdsRequest{}
 	mi := &file_proto_ad_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SearchAdsRequest) String() string {
+func (x *ListAdsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SearchAdsRequest) ProtoMessage() {}
+func (*ListAdsRequest) ProtoMessage() {}
 
-func (x *SearchAdsRequest) ProtoReflect() protoreflect.Message {
+func (x *ListAdsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_ad_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -401,75 +384,61 @@ func (x *SearchAdsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SearchAdsRequest.ProtoReflect.Descriptor instead.
-func (*SearchAdsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListAdsRequest.ProtoReflect.Descriptor instead.
+func (*ListAdsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_ad_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *SearchAdsRequest) GetText() string {
+func (x *ListAdsRequest) GetText() string {
 	if x != nil {
 		return x.Text
 	}
 	return ""
 }
 
-func (x *SearchAdsRequest) GetCategoryId() string {
+func (x *ListAdsRequest) GetCategoryId() string {
 	if x != nil {
 		return x.CategoryId
 	}
 	return ""
 }
 
-func (x *SearchAdsRequest) GetPriceMin() int64 {
+func (x *ListAdsRequest) GetPriceMin() int64 {
 	if x != nil {
 		return x.PriceMin
 	}
 	return 0
 }
 
-func (x *SearchAdsRequest) GetPriceMax() int64 {
+func (x *ListAdsRequest) GetPriceMax() int64 {
 	if x != nil {
 		return x.PriceMax
 	}
 	return 0
 }
 
-func (x *SearchAdsRequest) GetCondition() string {
+func (x *ListAdsRequest) GetCondition() string {
 	if x != nil {
 		return x.Condition
 	}
 	return ""
 }
 
-func (x *SearchAdsRequest) GetMinSellerRating() float64 {
-	if x != nil {
-		return x.MinSellerRating
-	}
-	return 0
-}
-
-func (x *SearchAdsRequest) GetPage() int32 {
+func (x *ListAdsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *SearchAdsRequest) GetPageSize() int32 {
+func (x *ListAdsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *SearchAdsRequest) GetSort() string {
-	if x != nil {
-		return x.Sort
-	}
-	return ""
-}
-
-type SearchAdsResponse struct {
+type ListAdsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ads           []*Ad                  `protobuf:"bytes,1,rep,name=ads,proto3" json:"ads,omitempty"`
 	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
@@ -479,20 +448,20 @@ type SearchAdsResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SearchAdsResponse) Reset() {
-	*x = SearchAdsResponse{}
+func (x *ListAdsResponse) Reset() {
+	*x = ListAdsResponse{}
 	mi := &file_proto_ad_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SearchAdsResponse) String() string {
+func (x *ListAdsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SearchAdsResponse) ProtoMessage() {}
+func (*ListAdsResponse) ProtoMessage() {}
 
-func (x *SearchAdsResponse) ProtoReflect() protoreflect.Message {
+func (x *ListAdsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_ad_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -504,44 +473,332 @@ func (x *SearchAdsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SearchAdsResponse.ProtoReflect.Descriptor instead.
-func (*SearchAdsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListAdsResponse.ProtoReflect.Descriptor instead.
+func (*ListAdsResponse) Descriptor() ([]byte, []int) {
 	return file_proto_ad_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *SearchAdsResponse) GetAds() []*Ad {
+func (x *ListAdsResponse) GetAds() []*Ad {
 	if x != nil {
 		return x.Ads
 	}
 	return nil
 }
 
-func (x *SearchAdsResponse) GetTotal() int32 {
+func (x *ListAdsResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *SearchAdsResponse) GetPage() int32 {
+func (x *ListAdsResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *SearchAdsResponse) GetPageSize() int32 {
+func (x *ListAdsResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
+type UpdateAdRequest struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	AdId          string                  `protobuf:"bytes,1,opt,name=ad_id,json=adId,proto3" json:"ad_id,omitempty"`
+	UserId        string                  `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Title         *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`             // optional
+	Description   *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"` // optional
+	Price         *wrapperspb.Int64Value  `protobuf:"bytes,5,opt,name=price,proto3" json:"price,omitempty"`             // optional
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAdRequest) Reset() {
+	*x = UpdateAdRequest{}
+	mi := &file_proto_ad_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAdRequest) ProtoMessage() {}
+
+func (x *UpdateAdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAdRequest.ProtoReflect.Descriptor instead.
+func (*UpdateAdRequest) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateAdRequest) GetAdId() string {
+	if x != nil {
+		return x.AdId
+	}
+	return ""
+}
+
+func (x *UpdateAdRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateAdRequest) GetTitle() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Title
+	}
+	return nil
+}
+
+func (x *UpdateAdRequest) GetDescription() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Description
+	}
+	return nil
+}
+
+func (x *UpdateAdRequest) GetPrice() *wrapperspb.Int64Value {
+	if x != nil {
+		return x.Price
+	}
+	return nil
+}
+
+type UpdateAdResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAdResponse) Reset() {
+	*x = UpdateAdResponse{}
+	mi := &file_proto_ad_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAdResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAdResponse) ProtoMessage() {}
+
+func (x *UpdateAdResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAdResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAdResponse) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{8}
+}
+
+type DeleteAdRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AdId          string                 `protobuf:"bytes,1,opt,name=ad_id,json=adId,proto3" json:"ad_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAdRequest) Reset() {
+	*x = DeleteAdRequest{}
+	mi := &file_proto_ad_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAdRequest) ProtoMessage() {}
+
+func (x *DeleteAdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAdRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAdRequest) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteAdRequest) GetAdId() string {
+	if x != nil {
+		return x.AdId
+	}
+	return ""
+}
+
+func (x *DeleteAdRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type DeleteAdResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAdResponse) Reset() {
+	*x = DeleteAdResponse{}
+	mi := &file_proto_ad_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAdResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAdResponse) ProtoMessage() {}
+
+func (x *DeleteAdResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAdResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAdResponse) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{10}
+}
+
+type AttachMediaRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AdId          string                 `protobuf:"bytes,1,opt,name=ad_id,json=adId,proto3" json:"ad_id,omitempty"`
+	MediaId       string                 `protobuf:"bytes,2,opt,name=media_id,json=mediaId,proto3" json:"media_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachMediaRequest) Reset() {
+	*x = AttachMediaRequest{}
+	mi := &file_proto_ad_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachMediaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachMediaRequest) ProtoMessage() {}
+
+func (x *AttachMediaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachMediaRequest.ProtoReflect.Descriptor instead.
+func (*AttachMediaRequest) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AttachMediaRequest) GetAdId() string {
+	if x != nil {
+		return x.AdId
+	}
+	return ""
+}
+
+func (x *AttachMediaRequest) GetMediaId() string {
+	if x != nil {
+		return x.MediaId
+	}
+	return ""
+}
+
+type AttachMediaResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachMediaResponse) Reset() {
+	*x = AttachMediaResponse{}
+	mi := &file_proto_ad_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachMediaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachMediaResponse) ProtoMessage() {}
+
+func (x *AttachMediaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ad_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachMediaResponse.ProtoReflect.Descriptor instead.
+func (*AttachMediaResponse) Descriptor() ([]byte, []int) {
+	return file_proto_ad_proto_rawDescGZIP(), []int{12}
+}
+
 var File_proto_ad_proto protoreflect.FileDescriptor
 
 const file_proto_ad_proto_rawDesc = "" +
 	"\n" +
-	"\x0eproto/ad.proto\x12\x02ad\"\xc0\x02\n" +
+	"\x0eproto/ad.proto\x12\x02ad\x1a\x1egoogle/protobuf/wrappers.proto\"\xc0\x02\n" +
 	"\x02Ad\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tauthor_id\x18\x02 \x01(\tR\bauthorId\x12\x14\n" +
@@ -558,41 +815,54 @@ const file_proto_ad_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\x03R\tupdatedAt\"\xb6\x01\n" +
-	"\x0fCreateAdRequest\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05price\x18\x03 \x01(\x03R\x05price\x12\x1f\n" +
-	"\vcategory_id\x18\x04 \x01(\tR\n" +
-	"categoryId\x12\x1c\n" +
-	"\tcondition\x18\x05 \x01(\tR\tcondition\x12\x16\n" +
-	"\x06images\x18\x06 \x03(\fR\x06images\"*\n" +
+	"updated_at\x18\v \x01(\x03R\tupdatedAt\"x\n" +
+	"\x0fCreateAdRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05price\x18\x04 \x01(\x03R\x05price\"*\n" +
 	"\x10CreateAdResponse\x12\x16\n" +
 	"\x02ad\x18\x01 \x01(\v2\x06.ad.AdR\x02ad\"\x1e\n" +
 	"\fGetAdRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"'\n" +
 	"\rGetAdResponse\x12\x16\n" +
-	"\x02ad\x18\x01 \x01(\v2\x06.ad.AdR\x02ad\"\x90\x02\n" +
-	"\x10SearchAdsRequest\x12\x12\n" +
+	"\x02ad\x18\x01 \x01(\v2\x06.ad.AdR\x02ad\"\xce\x01\n" +
+	"\x0eListAdsRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12\x1f\n" +
 	"\vcategory_id\x18\x02 \x01(\tR\n" +
 	"categoryId\x12\x1b\n" +
 	"\tprice_min\x18\x03 \x01(\x03R\bpriceMin\x12\x1b\n" +
 	"\tprice_max\x18\x04 \x01(\x03R\bpriceMax\x12\x1c\n" +
-	"\tcondition\x18\x05 \x01(\tR\tcondition\x12*\n" +
-	"\x11min_seller_rating\x18\x06 \x01(\x01R\x0fminSellerRating\x12\x12\n" +
-	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\x12\x12\n" +
-	"\x04sort\x18\t \x01(\tR\x04sort\"t\n" +
-	"\x11SearchAdsResponse\x12\x18\n" +
+	"\tcondition\x18\x05 \x01(\tR\tcondition\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\"r\n" +
+	"\x0fListAdsResponse\x12\x18\n" +
 	"\x03ads\x18\x01 \x03(\v2\x06.ad.AdR\x03ads\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xaa\x01\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xe6\x01\n" +
+	"\x0fUpdateAdRequest\x12\x13\n" +
+	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x122\n" +
+	"\x05title\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\x05title\x12>\n" +
+	"\vdescription\x18\x04 \x01(\v2\x1c.google.protobuf.StringValueR\vdescription\x121\n" +
+	"\x05price\x18\x05 \x01(\v2\x1b.google.protobuf.Int64ValueR\x05price\"\x12\n" +
+	"\x10UpdateAdResponse\"?\n" +
+	"\x0fDeleteAdRequest\x12\x13\n" +
+	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\x12\n" +
+	"\x10DeleteAdResponse\"D\n" +
+	"\x12AttachMediaRequest\x12\x13\n" +
+	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x19\n" +
+	"\bmedia_id\x18\x02 \x01(\tR\amediaId\"\x15\n" +
+	"\x13AttachMediaResponse2\xd2\x02\n" +
 	"\tAdService\x125\n" +
 	"\bCreateAd\x12\x13.ad.CreateAdRequest\x1a\x14.ad.CreateAdResponse\x12,\n" +
-	"\x05GetAd\x12\x10.ad.GetAdRequest\x1a\x11.ad.GetAdResponse\x128\n" +
-	"\tSearchAds\x12\x14.ad.SearchAdsRequest\x1a\x15.ad.SearchAdsResponseB0Z.78-pflops/services/ad_service/pb/ad_service/pbb\x06proto3"
+	"\x05GetAd\x12\x10.ad.GetAdRequest\x1a\x11.ad.GetAdResponse\x122\n" +
+	"\aListAds\x12\x12.ad.ListAdsRequest\x1a\x13.ad.ListAdsResponse\x125\n" +
+	"\bUpdateAd\x12\x13.ad.UpdateAdRequest\x1a\x14.ad.UpdateAdResponse\x125\n" +
+	"\bDeleteAd\x12\x13.ad.DeleteAdRequest\x1a\x14.ad.DeleteAdResponse\x12>\n" +
+	"\vAttachMedia\x12\x16.ad.AttachMediaRequest\x1a\x17.ad.AttachMediaResponseB0Z.78-pflops/services/ad_service/pb/ad_service/pbb\x06proto3"
 
 var (
 	file_proto_ad_proto_rawDescOnce sync.Once
@@ -606,31 +876,48 @@ func file_proto_ad_proto_rawDescGZIP() []byte {
 	return file_proto_ad_proto_rawDescData
 }
 
-var file_proto_ad_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_ad_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_ad_proto_goTypes = []any{
-	(*Ad)(nil),                // 0: ad.Ad
-	(*CreateAdRequest)(nil),   // 1: ad.CreateAdRequest
-	(*CreateAdResponse)(nil),  // 2: ad.CreateAdResponse
-	(*GetAdRequest)(nil),      // 3: ad.GetAdRequest
-	(*GetAdResponse)(nil),     // 4: ad.GetAdResponse
-	(*SearchAdsRequest)(nil),  // 5: ad.SearchAdsRequest
-	(*SearchAdsResponse)(nil), // 6: ad.SearchAdsResponse
+	(*Ad)(nil),                     // 0: ad.Ad
+	(*CreateAdRequest)(nil),        // 1: ad.CreateAdRequest
+	(*CreateAdResponse)(nil),       // 2: ad.CreateAdResponse
+	(*GetAdRequest)(nil),           // 3: ad.GetAdRequest
+	(*GetAdResponse)(nil),          // 4: ad.GetAdResponse
+	(*ListAdsRequest)(nil),         // 5: ad.ListAdsRequest
+	(*ListAdsResponse)(nil),        // 6: ad.ListAdsResponse
+	(*UpdateAdRequest)(nil),        // 7: ad.UpdateAdRequest
+	(*UpdateAdResponse)(nil),       // 8: ad.UpdateAdResponse
+	(*DeleteAdRequest)(nil),        // 9: ad.DeleteAdRequest
+	(*DeleteAdResponse)(nil),       // 10: ad.DeleteAdResponse
+	(*AttachMediaRequest)(nil),     // 11: ad.AttachMediaRequest
+	(*AttachMediaResponse)(nil),    // 12: ad.AttachMediaResponse
+	(*wrapperspb.StringValue)(nil), // 13: google.protobuf.StringValue
+	(*wrapperspb.Int64Value)(nil),  // 14: google.protobuf.Int64Value
 }
 var file_proto_ad_proto_depIdxs = []int32{
-	0, // 0: ad.CreateAdResponse.ad:type_name -> ad.Ad
-	0, // 1: ad.GetAdResponse.ad:type_name -> ad.Ad
-	0, // 2: ad.SearchAdsResponse.ads:type_name -> ad.Ad
-	1, // 3: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
-	3, // 4: ad.AdService.GetAd:input_type -> ad.GetAdRequest
-	5, // 5: ad.AdService.SearchAds:input_type -> ad.SearchAdsRequest
-	2, // 6: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
-	4, // 7: ad.AdService.GetAd:output_type -> ad.GetAdResponse
-	6, // 8: ad.AdService.SearchAds:output_type -> ad.SearchAdsResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: ad.CreateAdResponse.ad:type_name -> ad.Ad
+	0,  // 1: ad.GetAdResponse.ad:type_name -> ad.Ad
+	0,  // 2: ad.ListAdsResponse.ads:type_name -> ad.Ad
+	13, // 3: ad.UpdateAdRequest.title:type_name -> google.protobuf.StringValue
+	13, // 4: ad.UpdateAdRequest.description:type_name -> google.protobuf.StringValue
+	14, // 5: ad.UpdateAdRequest.price:type_name -> google.protobuf.Int64Value
+	1,  // 6: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
+	3,  // 7: ad.AdService.GetAd:input_type -> ad.GetAdRequest
+	5,  // 8: ad.AdService.ListAds:input_type -> ad.ListAdsRequest
+	7,  // 9: ad.AdService.UpdateAd:input_type -> ad.UpdateAdRequest
+	9,  // 10: ad.AdService.DeleteAd:input_type -> ad.DeleteAdRequest
+	11, // 11: ad.AdService.AttachMedia:input_type -> ad.AttachMediaRequest
+	2,  // 12: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
+	4,  // 13: ad.AdService.GetAd:output_type -> ad.GetAdResponse
+	6,  // 14: ad.AdService.ListAds:output_type -> ad.ListAdsResponse
+	8,  // 15: ad.AdService.UpdateAd:output_type -> ad.UpdateAdResponse
+	10, // 16: ad.AdService.DeleteAd:output_type -> ad.DeleteAdResponse
+	12, // 17: ad.AdService.AttachMedia:output_type -> ad.AttachMediaResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_ad_proto_init() }
@@ -644,7 +931,7 @@ func file_proto_ad_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_ad_proto_rawDesc), len(file_proto_ad_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

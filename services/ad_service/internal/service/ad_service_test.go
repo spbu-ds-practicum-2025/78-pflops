@@ -32,12 +32,16 @@ func (s *stubRepo) Get(ctx context.Context, id string) (*model.Ad, error) { retu
 func (s *stubRepo) Search(ctx context.Context, text string, categoryID *string, priceMin, priceMax *int64, condition *string, limit, offset int) ([]model.Ad, int, error) {
 	return s.searchAds, s.searchCnt, nil
 }
+func (s *stubRepo) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error {
+	return nil
+}
 func (s *stubRepo) Delete(ctx context.Context, id string, authorID string) error { return s.deleteErr }
+func (s *stubRepo) AttachMedia(ctx context.Context, adID, mediaID string) error  { return nil }
 
 func TestCreateAd(t *testing.T) {
 	repo := &stubRepo{}
 	svc := &AdService{repo: repo}
-	ad, err := svc.CreateAd(context.Background(), "author-1", "Title", "Desc", 123, "cat-1", "NEW")
+	ad, err := svc.CreateAd(context.Background(), "author-1", "Title", "Desc", 123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -68,11 +72,11 @@ func TestGetAd(t *testing.T) {
 	}
 }
 
-func TestSearchAds(t *testing.T) {
+func TestListAds(t *testing.T) {
 	list := []model.Ad{{ID: "1"}, {ID: "2"}}
 	repo := &stubRepo{searchAds: list, searchCnt: 2}
 	svc := &AdService{repo: repo}
-	ads, cnt, err := svc.SearchAds(context.Background(), "", nil, nil, nil, nil, 10, 0)
+	ads, cnt, err := svc.ListAds(context.Background(), Filters{Limit: 10, Offset: 0})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -88,6 +92,23 @@ func TestDeleteAd(t *testing.T) {
 	repo := &stubRepo{}
 	svc := &AdService{repo: repo}
 	if err := svc.DeleteAd(context.Background(), "id", "author"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestUpdateAd(t *testing.T) {
+	repo := &stubRepo{}
+	svc := &AdService{repo: repo}
+	title := "New"
+	if err := svc.UpdateAd(context.Background(), "ad1", "author-1", &title, nil, nil); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestAttachMedia(t *testing.T) {
+	repo := &stubRepo{}
+	svc := &AdService{repo: repo}
+	if err := svc.AttachMedia(context.Background(), "ad1", "media-123"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

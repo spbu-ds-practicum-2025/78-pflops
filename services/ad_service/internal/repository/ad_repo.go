@@ -92,6 +92,44 @@ func (r *AdRepository) Search(ctx context.Context, text string, categoryID *stri
 	return list, len(list), nil
 }
 
+func (r *AdRepository) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error {
+	set := "updated_at = NOW()"
+	args := []any{}
+	idx := 1
+	add := func(fragment string, val any) {
+		set += ", " + fragment + fmt.Sprintf(" $%d", idx)
+		args = append(args, val)
+		idx++
+	}
+	if title != nil {
+		add("title =", *title)
+	}
+	if description != nil {
+		add("description =", *description)
+	}
+	if price != nil {
+		add("price =", *price)
+	}
+	// WHERE id and author
+	query := fmt.Sprintf("UPDATE ads SET %s WHERE id = $%d AND author_id = $%d", set, idx, idx+1)
+	args = append(args, id, authorID)
+	res, err := r.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return errors.New("not found or no permission")
+	}
+	return nil
+}
+
+func (r *AdRepository) AttachMedia(ctx context.Context, adID, mediaID string) error {
+	// store mediaID as URL for simplicity
+	id := uuid.New().String()
+	_, err := r.pool.Exec(ctx, `INSERT INTO ad_images (id, ad_id, url, is_primary, position) VALUES ($1,$2,$3,false,0)`, id, adID, mediaID)
+	return err
+}
+
 func (r *AdRepository) Delete(ctx context.Context, id string, authorID string) error {
 	res, err := r.pool.Exec(ctx, `DELETE FROM ads WHERE id=$1 AND author_id=$2`, id, authorID)
 	if err != nil {

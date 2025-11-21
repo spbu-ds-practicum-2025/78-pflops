@@ -58,9 +58,7 @@ func toPb(ad *model.Ad) *pb.Ad {
 
 // CreateAd implements gRPC CreateAd
 func (s *adServer) CreateAd(ctx context.Context, req *pb.CreateAdRequest) (*pb.CreateAdResponse, error) {
-	// TEMP: author id should come from JWT (metadata); using placeholder
-	authorID := "00000000-0000-0000-0000-000000000001"
-	ad, err := s.svc.CreateAd(ctx, authorID, req.Title, req.Description, req.Price, req.CategoryId, req.Condition)
+	ad, err := s.svc.CreateAd(ctx, req.UserId, req.Title, req.Description, req.Price)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +73,7 @@ func (s *adServer) GetAd(ctx context.Context, req *pb.GetAdRequest) (*pb.GetAdRe
 	return &pb.GetAdResponse{Ad: toPb(ad)}, nil
 }
 
-func (s *adServer) SearchAds(ctx context.Context, req *pb.SearchAdsRequest) (*pb.SearchAdsResponse, error) {
+func (s *adServer) ListAds(ctx context.Context, req *pb.ListAdsRequest) (*pb.ListAdsResponse, error) {
 	limit := int(req.PageSize)
 	if limit <= 0 {
 		limit = 10
@@ -103,7 +101,7 @@ func (s *adServer) SearchAds(ctx context.Context, req *pb.SearchAdsRequest) (*pb
 	if req.Condition != "" {
 		conditionPtr = &req.Condition
 	}
-	ads, total, err := s.svc.SearchAds(ctx, req.Text, categoryPtr, priceMinPtr, priceMaxPtr, conditionPtr, limit, offset)
+	ads, total, err := s.svc.ListAds(ctx, service.Filters{Text: req.Text, CategoryID: categoryPtr, PriceMin: priceMinPtr, PriceMax: priceMaxPtr, Condition: conditionPtr, Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,42 @@ func (s *adServer) SearchAds(ctx context.Context, req *pb.SearchAdsRequest) (*pb
 	for i := range ads {
 		respAds = append(respAds, toPb(&ads[i]))
 	}
-	return &pb.SearchAdsResponse{Ads: respAds, Total: int32(total), Page: int32(page), PageSize: int32(limit)}, nil
+	return &pb.ListAdsResponse{Ads: respAds, Total: int32(total), Page: int32(page), PageSize: int32(limit)}, nil
+}
+
+func (s *adServer) UpdateAd(ctx context.Context, req *pb.UpdateAdRequest) (*pb.UpdateAdResponse, error) {
+	var titlePtr, descPtr *string
+	var pricePtr *int64
+	if req.Title != nil {
+		v := req.Title.Value
+		titlePtr = &v
+	}
+	if req.Description != nil {
+		v := req.Description.Value
+		descPtr = &v
+	}
+	if req.Price != nil {
+		v := req.Price.Value
+		pricePtr = &v
+	}
+	if err := s.svc.UpdateAd(ctx, req.AdId, req.UserId, titlePtr, descPtr, pricePtr); err != nil {
+		return nil, err
+	}
+	return &pb.UpdateAdResponse{}, nil
+}
+
+func (s *adServer) DeleteAd(ctx context.Context, req *pb.DeleteAdRequest) (*pb.DeleteAdResponse, error) {
+	if err := s.svc.DeleteAd(ctx, req.AdId, req.UserId); err != nil {
+		return nil, err
+	}
+	return &pb.DeleteAdResponse{}, nil
+}
+
+func (s *adServer) AttachMedia(ctx context.Context, req *pb.AttachMediaRequest) (*pb.AttachMediaResponse, error) {
+	if err := s.svc.AttachMedia(ctx, req.AdId, req.MediaId); err != nil {
+		return nil, err
+	}
+	return &pb.AttachMediaResponse{}, nil
 }
 
 func main() {

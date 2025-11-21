@@ -2,6 +2,8 @@ syntax = "proto3";
 package ad;
 option go_package = "78-pflops/services/ad_service/pb/ad_service/pb";
 
+import "google/protobuf/wrappers.proto";
+
 message Ad {
   string id = 1;
   string author_id = 2;
@@ -17,12 +19,10 @@ message Ad {
 }
 
 message CreateAdRequest {
-  string title = 1;
-  string description = 2;
-  int64 price = 3;
-  string category_id = 4;
-  string condition = 5;
-  repeated bytes images = 6; // raw bytes for MediaService pass-through
+  string user_id = 1;
+  string title = 2;
+  string description = 3;
+  int64 price = 4;
 }
 
 message CreateAdResponse { Ad ad = 1; }
@@ -30,27 +30,44 @@ message CreateAdResponse { Ad ad = 1; }
 message GetAdRequest { string id = 1; }
 message GetAdResponse { Ad ad = 1; }
 
-message SearchAdsRequest {
+message ListAdsRequest {
   string text = 1;
   string category_id = 2;
   int64 price_min = 3;
   int64 price_max = 4;
   string condition = 5;
-  double min_seller_rating = 6;
-  int32 page = 7;
-  int32 page_size = 8;
-  string sort = 9; // price_asc, price_desc, created_desc
+  int32 page = 6;
+  int32 page_size = 7;
 }
 
-message SearchAdsResponse {
+message ListAdsResponse {
   repeated Ad ads = 1;
   int32 total = 2;
   int32 page = 3;
   int32 page_size = 4;
 }
 
+message UpdateAdRequest {
+  string ad_id = 1;
+  string user_id = 2;
+  google.protobuf.StringValue title = 3;       // optional
+  google.protobuf.StringValue description = 4; // optional
+  google.protobuf.Int64Value price = 5;        // optional
+}
+
+message UpdateAdResponse {}
+
+message DeleteAdRequest { string ad_id = 1; string user_id = 2; }
+message DeleteAdResponse {}
+
+message AttachMediaRequest { string ad_id = 1; string media_id = 2; }
+message AttachMediaResponse {}
+
 service AdService {
   rpc CreateAd (CreateAdRequest) returns (CreateAdResponse);
   rpc GetAd (GetAdRequest) returns (GetAdResponse);
-  rpc SearchAds (SearchAdsRequest) returns (SearchAdsResponse);
+  rpc ListAds (ListAdsRequest) returns (ListAdsResponse);
+  rpc UpdateAd (UpdateAdRequest) returns (UpdateAdResponse);
+  rpc DeleteAd (DeleteAdRequest) returns (DeleteAdResponse);
+  rpc AttachMedia (AttachMediaRequest) returns (AttachMediaResponse);
 }
