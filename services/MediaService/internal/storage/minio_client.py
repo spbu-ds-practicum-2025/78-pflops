@@ -4,6 +4,7 @@ from minio.error import S3Error
 from datetime import timedelta
 import uuid
 from typing import List, Optional
+from config import settings
 
 class MinioClient:
     def __init__(self):

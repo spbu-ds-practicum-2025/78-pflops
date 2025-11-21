@@ -1,7 +1,7 @@
 # test_client.py
 import grpc
-from generated import media_pb2
-from generated import media_pb2_grpc
+from services.MediaService.pkg.pb import media_pb2
+from services.MediaService.pkg.pb import media_pb2_grpc
 
 def test_server():
     print("Connecting to gRPC server...")
