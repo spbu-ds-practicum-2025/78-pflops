@@ -1,2 +1,17 @@
+gen/
+bin/
+
+# Go
+*.exe
+*.test
+*.out
+*.prof
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Env
+.env
