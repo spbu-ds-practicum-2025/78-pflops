@@ -13,13 +13,16 @@ service UserService {
 }
 
 message RegisterRequest {
-    string email = 1;
-    string password = 2;
+  string email = 1;
+  string password = 2;
+  string name = 3; // добавлено поле
 }
 
 message RegisterResponse {
-    string user_id = 1;
-    string token = 2;
+  string id = 1;
+  string token = 2;
+  string email = 3;
+  string name = 4; // добавлено поле
 }
 
 message LoginRequest {

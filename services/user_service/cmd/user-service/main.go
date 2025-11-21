@@ -27,11 +27,11 @@ func newServer() *userServiceServer {
 }
 
 func (s *userServiceServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
-	userID, token, err := s.service.Register(ctx, req.Email, req.Password, "New User")
+	userID, token, err := s.service.Register(ctx, req.Email, req.Password, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	return &proto.RegisterResponse{UserId: userID, Token: token}, nil
+	return &proto.RegisterResponse{Id: userID, Token: token, Email: req.Email, Name: req.Name}, nil
 }
 
 func (s *userServiceServer) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
