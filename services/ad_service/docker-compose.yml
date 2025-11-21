@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ad_service_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${AD_POSTGRES_PORT}:5432"
+    volumes:
+      - ./internal/db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ad_service:
+    build: .
+    container_name: ad_service_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AD_DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${AD_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      AD_SERVICE_PORT: ${AD_SERVICE_PORT}
+    ports:
+      - "${AD_SERVICE_PORT}:50052"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ad_service_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ad_service_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672" # management UI
+    restart: unless-stopped
+
+  grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: ad_service_ui
+    depends_on:
+      - ad_service
+    command: ["-plaintext", "ad_service:50052"]
+    ports:
+      - "${GRPCUI_PORT}:8080"
+
+networks:
+  default:
+    name: ad_service_net

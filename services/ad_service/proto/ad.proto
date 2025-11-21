@@ -1,0 +1,56 @@
+syntax = "proto3";
+package ad;
+option go_package = "78-pflops/services/ad_service/pb/ad_service/pb";
+
+message Ad {
+  string id = 1;
+  string author_id = 2;
+  string title = 3;
+  string description = 4;
+  int64 price = 5;
+  string category_id = 6;
+  string condition = 7; // NEW, USED, REFURBISHED
+  repeated string image_urls = 8;
+  double seller_rating = 9;
+  int64 created_at = 10;
+  int64 updated_at = 11;
+}
+
+message CreateAdRequest {
+  string title = 1;
+  string description = 2;
+  int64 price = 3;
+  string category_id = 4;
+  string condition = 5;
+  repeated bytes images = 6; // raw bytes for MediaService pass-through
+}
+
+message CreateAdResponse { Ad ad = 1; }
+
+message GetAdRequest { string id = 1; }
+message GetAdResponse { Ad ad = 1; }
+
+message SearchAdsRequest {
+  string text = 1;
+  string category_id = 2;
+  int64 price_min = 3;
+  int64 price_max = 4;
+  string condition = 5;
+  double min_seller_rating = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+  string sort = 9; // price_asc, price_desc, created_desc
+}
+
+message SearchAdsResponse {
+  repeated Ad ads = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+service AdService {
+  rpc CreateAd (CreateAdRequest) returns (CreateAdResponse);
+  rpc GetAd (GetAdRequest) returns (GetAdResponse);
+  rpc SearchAds (SearchAdsRequest) returns (SearchAdsResponse);
+}
