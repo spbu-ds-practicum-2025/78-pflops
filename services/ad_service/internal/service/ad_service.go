@@ -7,10 +7,19 @@ import (
 	"78-pflops/services/ad_service/internal/repository"
 )
 
-type AdService struct {
-	repo *repository.AdRepository
+// repoInterface abstracts persistence for testability.
+type repoInterface interface {
+	Create(ctx context.Context, ad *model.Ad) error
+	Get(ctx context.Context, id string) (*model.Ad, error)
+	Search(ctx context.Context, text string, categoryID *string, priceMin, priceMax *int64, condition *string, limit, offset int) ([]model.Ad, int, error)
+	Delete(ctx context.Context, id string, authorID string) error
 }
 
+type AdService struct {
+	repo repoInterface
+}
+
+// NewAdService keeps backward compatibility with concrete repository.
 func NewAdService(repo *repository.AdRepository) *AdService { return &AdService{repo: repo} }
 
 func (s *AdService) CreateAd(ctx context.Context, authorID, title, description string, price int64, categoryID, condition string) (*model.Ad, error) {
