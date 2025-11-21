@@ -5,18 +5,22 @@ import (
 	"errors"
 
 	"78-pflops/services/user_service/internal/model"
-	"78-pflops/services/user_service/internal/repository"
 	"78-pflops/services/user_service/internal/utils"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/google/uuid"
 )
 
-type UserService struct {
-	repo *repository.UserRepository
+type UserRepository interface {
+	Create(ctx context.Context, user *model.User) error
+	GetByEmail(ctx context.Context, email string) (*model.User, error)
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
+type UserService struct {
+	repo UserRepository
+}
+
+func NewUserService(repo UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
