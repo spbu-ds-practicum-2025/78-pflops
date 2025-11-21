@@ -1,20 +1,7 @@
 services:
-  media-service:
-    build: .
-    ports:
-      - "50051:50051"
-    environment:
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - MINIO_BUCKET=media-service
-    depends_on:
-      - minio
-    networks:
-      - media-network
-
   minio:
     image: minio/minio:latest
+    container_name: media_service_minio
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -24,12 +11,45 @@ services:
     volumes:
       - minio_data:/data
     command: server --console-address ":9001" /data
-    networks:
-      - media-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  media-service:
+    build: .
+    container_name: media_service_app
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=media-service
+    ports:
+      - "50051:50051"
+    healthcheck:
+      test: ["CMD", "timeout", "5", "bash", "-c", "echo > /dev/tcp/localhost/50051 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: media_service_ui
+    depends_on:
+      media-service:
+        condition: service_healthy
+    command: ["-plaintext", "media-service:50051"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   minio_data:
-
-networks:
-  media-network:
-    driver: bridge

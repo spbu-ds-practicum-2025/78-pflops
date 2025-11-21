@@ -2,6 +2,7 @@ import grpc
 from concurrent import futures
 import os
 from datetime import datetime
+from grpc_reflection.v1alpha import reflection
 
 from generated import media_pb2, media_pb2_grpc
 from minio_client import MinioClient
@@ -146,9 +147,18 @@ def serve():
     media_pb2_grpc.add_MediaServiceServicer_to_server(
         MediaServiceServicer(), server
     )
+    
+    # Включение reflection для gRPC Web UI
+    SERVICE_NAMES = (
+        media_pb2.DESCRIPTOR.services_by_name['MediaService'].full_name,
+        reflection.SERVICE_NAME,
+    )
+    reflection.enable_server_reflection(SERVICE_NAMES, server)
+    
     server.add_insecure_port('[::]:50051')
     
     print("Media Service запущен на порту 50051...")
+    print("gRPC Web UI будет доступен на http://localhost:8080")
     server.start()
     server.wait_for_termination()
 

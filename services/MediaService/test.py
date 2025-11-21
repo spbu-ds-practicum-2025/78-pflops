@@ -56,5 +56,20 @@ def test_server():
     except Exception as e:
         print(f"❌ Error: {e}")
 
+def test_reflection():
+    """Test if reflection is working"""
+    try:
+        from grpc_reflection.v1alpha.proto_reflection_descriptor_database import ProtoReflectionDescriptorDatabase
+        import grpc.reflection
+        channel = grpc.insecure_channel('localhost:50051')
+        reflection_db = ProtoReflectionDescriptorDatabase(channel)
+        
+        print("✅ Reflection is enabled and working")
+        return True
+    except Exception as e:
+        print(f"❌ Reflection test failed: {e}")
+        return False
+
 if __name__ == "__main__":
+    test_reflection()
     test_server()

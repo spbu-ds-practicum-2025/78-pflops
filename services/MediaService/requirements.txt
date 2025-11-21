@@ -4,6 +4,7 @@ certifi==2025.10.5
 cffi==2.0.0
 grpcio==1.76.0
 grpcio-tools==1.76.0
+grpcio-reflection==1.76.0
 minio==7.2.18
 protobuf==6.33.0
 pycparser==2.23
