@@ -1,43 +1,44 @@
 services:
-  minio:
-    image: minio/minio:latest
-    container_name: media_service_minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    volumes:
-      - minio_data:/data
-    command: server --console-address ":9001" /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
-
   media-service:
     build: .
     container_name: media_service_app
+    ports:
+      - "${MEDIA_SERVICE_PORT}:50051"
+    environment:
+      - GRPC_PORT=${GRPC_PORT}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT} 
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
     depends_on:
       minio:
         condition: service_healthy
-    environment:
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - MINIO_BUCKET=media-service
-    ports:
-      - "50051:50051"
     healthcheck:
-      test: ["CMD", "timeout", "5", "bash", "-c", "echo > /dev/tcp/localhost/50051 || exit 1"]
+      test: ["CMD", "nc", "-z", "localhost", "${MEDIA_SERVICE_PORT}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: media_service_minio
+    ports:
+      - "${MINIO_PORT_1}:9000"
+      - "${MINIO_PORT_2}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server --console-address ":${MINIO_PORT_2}" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MINIO_PORT_2}/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   grpcui:
@@ -46,9 +47,9 @@ services:
     depends_on:
       media-service:
         condition: service_healthy
-    command: ["-plaintext", "media-service:50051"]
+    command: ["-plaintext", "media-service:${MEDIA_SERVICE_PORT}"]
     ports:
-      - "8080:8080"
+      - "${GRPCUI_PORT}:8080"
     restart: unless-stopped
 
 volumes:
