@@ -6,12 +6,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-U ${POSTGRES_USER}"
+    command: ["postgres", "-p", "5433"]
     ports:
-      - "${AD_POSTGRES_PORT}:5432"
+      - "${AD_POSTGRES_PORT}:5433"
     volumes:
       - ./internal/db/migrations:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -p 5433 -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,28 +27,10 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      AD_DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${AD_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      AD_DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5433/${POSTGRES_DB}?sslmode=disable
       AD_SERVICE_PORT: ${AD_SERVICE_PORT}
     ports:
       - "${AD_SERVICE_PORT}:50052"
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: ad_service_redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: ad_service_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"
-      - "15672:15672" # management UI
     restart: unless-stopped
 
   grpcui:
@@ -56,6 +41,9 @@ services:
     command: ["-plaintext", "ad_service:50052"]
     ports:
       - "${GRPCUI_PORT}:8080"
+
+volumes:
+  postgres_data:
 
 networks:
   default:
