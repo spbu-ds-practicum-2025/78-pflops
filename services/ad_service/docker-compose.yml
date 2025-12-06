@@ -8,7 +8,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "-U ${POSTGRES_USER}"
     ports:
-      - "${AD_POSTGRES_PORT}:5432"
+      - "${AD_POSTGRES_PORT}:5433"
     volumes:
       - ./internal/db/migrations:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
@@ -26,7 +26,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      AD_DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      AD_DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5433/${POSTGRES_DB}?sslmode=disable
       AD_SERVICE_PORT: ${AD_SERVICE_PORT}
     ports:
       - "${AD_SERVICE_PORT}:50052"

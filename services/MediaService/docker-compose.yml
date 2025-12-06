@@ -3,7 +3,7 @@ services:
     build: .
     container_name: media_service_app
     ports:
-      - "${MEDIA_SERVICE_PORT}:50051"
+      - "${MEDIA_SERVICE_PORT}:50053"
     environment:
       - GRPC_PORT=${GRPC_PORT}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT} 
