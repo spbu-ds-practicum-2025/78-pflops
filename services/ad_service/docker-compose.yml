@@ -32,24 +32,6 @@ services:
       - "${AD_SERVICE_PORT}:50052"
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: ad_service_redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: ad_service_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"
-      - "15672:15672" # management UI
-    restart: unless-stopped
-
   grpcui:
     image: fullstorydev/grpcui:latest
     container_name: ad_service_ui
