@@ -25,7 +25,7 @@ deps:
 
 clean:
 	@echo "Очистка сгенерированных файлов..."
-	rm -rf "$(OUT_DIR)/ad_service/pb/"*.pb.go
+	rm -rf $(OUT_DIR)/ad_service/pb/*.pb.go
 	@echo "Очищено"
 
 run:
@@ -39,19 +39,19 @@ build:
 
 up:
 	@echo "Запуск Docker контейнеров..."
-	docker-compose up --build -d
+	docker compose up --build -d
 
 down:
 	@echo "Остановка Docker контейнеров..."
-	docker-compose down
+	docker compose down
 
 logs:
 	@echo "Просмотр логов..."
-	docker-compose logs -f
+	docker compose logs -f
 
 dbshell:
 	@echo "Подключение к PostgreSQL..."
-	docker exec -it ad_service_db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+	docker exec -it ad_service_db psql -p 5433 -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
 # Тестовые вызовы через grpcurl
 
