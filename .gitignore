@@ -15,5 +15,4 @@ bin/
 
 # Env
 .env
-
 services/MediaService/venv
