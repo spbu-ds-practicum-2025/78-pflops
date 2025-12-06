@@ -3,10 +3,21 @@ FROM golang:1.25.1 AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+# Install protoc compiler and dependencies
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . .
+
+RUN go mod tidy
+ENV PATH="$PATH:$(go env GOPATH)/bin"
+
+RUN make deps
+RUN make proto
+
+RUN go mod download
 
 RUN go build -o user_service ./cmd/user-service
 
