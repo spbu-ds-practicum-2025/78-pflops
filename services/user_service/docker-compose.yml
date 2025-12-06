@@ -11,7 +11,7 @@ services:
     volumes:
       - ./internal/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
