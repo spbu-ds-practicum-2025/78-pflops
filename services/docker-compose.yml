@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # User Service + DB
   user_postgres:
