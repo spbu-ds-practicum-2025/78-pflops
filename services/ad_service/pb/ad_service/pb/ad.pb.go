@@ -794,80 +794,20 @@ func (*AttachMediaResponse) Descriptor() ([]byte, []int) {
 	return file_ad_proto_rawDescGZIP(), []int{12}
 }
 
-type ImageUpload struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileBytes     []byte                 `protobuf:"bytes,1,opt,name=file_bytes,json=fileBytes,proto3" json:"file_bytes,omitempty"`
-	MimeType      string                 `protobuf:"bytes,2,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
-	FileName      string                 `protobuf:"bytes,3,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImageUpload) Reset() {
-	*x = ImageUpload{}
-	mi := &file_ad_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImageUpload) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImageUpload) ProtoMessage() {}
-
-func (x *ImageUpload) ProtoReflect() protoreflect.Message {
-	mi := &file_ad_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImageUpload.ProtoReflect.Descriptor instead.
-func (*ImageUpload) Descriptor() ([]byte, []int) {
-	return file_ad_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *ImageUpload) GetFileBytes() []byte {
-	if x != nil {
-		return x.FileBytes
-	}
-	return nil
-}
-
-func (x *ImageUpload) GetMimeType() string {
-	if x != nil {
-		return x.MimeType
-	}
-	return ""
-}
-
-func (x *ImageUpload) GetFileName() string {
-	if x != nil {
-		return x.FileName
-	}
-	return ""
-}
-
 type CreateAdWithImagesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // идентификатор пользователя (уже валидированный снаружи)
 	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
-	Images        []*ImageUpload         `protobuf:"bytes,5,rep,name=images,proto3" json:"images,omitempty"`
+	MediaIds      []string               `protobuf:"bytes,5,rep,name=media_ids,json=mediaIds,proto3" json:"media_ids,omitempty"` // идентификаторы уже загруженных медиа
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateAdWithImagesRequest) Reset() {
 	*x = CreateAdWithImagesRequest{}
-	mi := &file_ad_proto_msgTypes[14]
+	mi := &file_ad_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -879,7 +819,7 @@ func (x *CreateAdWithImagesRequest) String() string {
 func (*CreateAdWithImagesRequest) ProtoMessage() {}
 
 func (x *CreateAdWithImagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ad_proto_msgTypes[14]
+	mi := &file_ad_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -892,7 +832,7 @@ func (x *CreateAdWithImagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAdWithImagesRequest.ProtoReflect.Descriptor instead.
 func (*CreateAdWithImagesRequest) Descriptor() ([]byte, []int) {
-	return file_ad_proto_rawDescGZIP(), []int{14}
+	return file_ad_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateAdWithImagesRequest) GetUserId() string {
@@ -923,9 +863,9 @@ func (x *CreateAdWithImagesRequest) GetPrice() int64 {
 	return 0
 }
 
-func (x *CreateAdWithImagesRequest) GetImages() []*ImageUpload {
+func (x *CreateAdWithImagesRequest) GetMediaIds() []string {
 	if x != nil {
-		return x.Images
+		return x.MediaIds
 	}
 	return nil
 }
@@ -939,7 +879,7 @@ type CreateAdWithImagesResponse struct {
 
 func (x *CreateAdWithImagesResponse) Reset() {
 	*x = CreateAdWithImagesResponse{}
-	mi := &file_ad_proto_msgTypes[15]
+	mi := &file_ad_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -951,7 +891,7 @@ func (x *CreateAdWithImagesResponse) String() string {
 func (*CreateAdWithImagesResponse) ProtoMessage() {}
 
 func (x *CreateAdWithImagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ad_proto_msgTypes[15]
+	mi := &file_ad_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -964,7 +904,7 @@ func (x *CreateAdWithImagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAdWithImagesResponse.ProtoReflect.Descriptor instead.
 func (*CreateAdWithImagesResponse) Descriptor() ([]byte, []int) {
-	return file_ad_proto_rawDescGZIP(), []int{15}
+	return file_ad_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateAdWithImagesResponse) GetAd() *Ad {
@@ -1035,18 +975,13 @@ const file_ad_proto_rawDesc = "" +
 	"\x12AttachMediaRequest\x12\x13\n" +
 	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x19\n" +
 	"\bmedia_id\x18\x02 \x01(\tR\amediaId\"\x15\n" +
-	"\x13AttachMediaResponse\"f\n" +
-	"\vImageUpload\x12\x1d\n" +
-	"\n" +
-	"file_bytes\x18\x01 \x01(\fR\tfileBytes\x12\x1b\n" +
-	"\tmime_type\x18\x02 \x01(\tR\bmimeType\x12\x1b\n" +
-	"\tfile_name\x18\x03 \x01(\tR\bfileName\"\xab\x01\n" +
+	"\x13AttachMediaResponse\"\x9f\x01\n" +
 	"\x19CreateAdWithImagesRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05price\x18\x04 \x01(\x03R\x05price\x12'\n" +
-	"\x06images\x18\x05 \x03(\v2\x0f.ad.ImageUploadR\x06images\"4\n" +
+	"\x05price\x18\x04 \x01(\x03R\x05price\x12\x1b\n" +
+	"\tmedia_ids\x18\x05 \x03(\tR\bmediaIds\"4\n" +
 	"\x1aCreateAdWithImagesResponse\x12\x16\n" +
 	"\x02ad\x18\x01 \x01(\v2\x06.ad.AdR\x02ad2\xa7\x03\n" +
 	"\tAdService\x125\n" +
@@ -1070,7 +1005,7 @@ func file_ad_proto_rawDescGZIP() []byte {
 	return file_ad_proto_rawDescData
 }
 
-var file_ad_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_ad_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_ad_proto_goTypes = []any{
 	(*Ad)(nil),                         // 0: ad.Ad
 	(*CreateAdRequest)(nil),            // 1: ad.CreateAdRequest
@@ -1085,40 +1020,38 @@ var file_ad_proto_goTypes = []any{
 	(*DeleteAdResponse)(nil),           // 10: ad.DeleteAdResponse
 	(*AttachMediaRequest)(nil),         // 11: ad.AttachMediaRequest
 	(*AttachMediaResponse)(nil),        // 12: ad.AttachMediaResponse
-	(*ImageUpload)(nil),                // 13: ad.ImageUpload
-	(*CreateAdWithImagesRequest)(nil),  // 14: ad.CreateAdWithImagesRequest
-	(*CreateAdWithImagesResponse)(nil), // 15: ad.CreateAdWithImagesResponse
-	(*wrapperspb.StringValue)(nil),     // 16: google.protobuf.StringValue
-	(*wrapperspb.Int64Value)(nil),      // 17: google.protobuf.Int64Value
+	(*CreateAdWithImagesRequest)(nil),  // 13: ad.CreateAdWithImagesRequest
+	(*CreateAdWithImagesResponse)(nil), // 14: ad.CreateAdWithImagesResponse
+	(*wrapperspb.StringValue)(nil),     // 15: google.protobuf.StringValue
+	(*wrapperspb.Int64Value)(nil),      // 16: google.protobuf.Int64Value
 }
 var file_ad_proto_depIdxs = []int32{
 	0,  // 0: ad.CreateAdResponse.ad:type_name -> ad.Ad
 	0,  // 1: ad.GetAdResponse.ad:type_name -> ad.Ad
 	0,  // 2: ad.ListAdsResponse.ads:type_name -> ad.Ad
-	16, // 3: ad.UpdateAdRequest.title:type_name -> google.protobuf.StringValue
-	16, // 4: ad.UpdateAdRequest.description:type_name -> google.protobuf.StringValue
-	17, // 5: ad.UpdateAdRequest.price:type_name -> google.protobuf.Int64Value
-	13, // 6: ad.CreateAdWithImagesRequest.images:type_name -> ad.ImageUpload
-	0,  // 7: ad.CreateAdWithImagesResponse.ad:type_name -> ad.Ad
-	1,  // 8: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
-	3,  // 9: ad.AdService.GetAd:input_type -> ad.GetAdRequest
-	5,  // 10: ad.AdService.ListAds:input_type -> ad.ListAdsRequest
-	7,  // 11: ad.AdService.UpdateAd:input_type -> ad.UpdateAdRequest
-	9,  // 12: ad.AdService.DeleteAd:input_type -> ad.DeleteAdRequest
-	11, // 13: ad.AdService.AttachMedia:input_type -> ad.AttachMediaRequest
-	14, // 14: ad.AdService.CreateAdWithImages:input_type -> ad.CreateAdWithImagesRequest
-	2,  // 15: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
-	4,  // 16: ad.AdService.GetAd:output_type -> ad.GetAdResponse
-	6,  // 17: ad.AdService.ListAds:output_type -> ad.ListAdsResponse
-	8,  // 18: ad.AdService.UpdateAd:output_type -> ad.UpdateAdResponse
-	10, // 19: ad.AdService.DeleteAd:output_type -> ad.DeleteAdResponse
-	12, // 20: ad.AdService.AttachMedia:output_type -> ad.AttachMediaResponse
-	15, // 21: ad.AdService.CreateAdWithImages:output_type -> ad.CreateAdWithImagesResponse
-	15, // [15:22] is the sub-list for method output_type
-	8,  // [8:15] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	15, // 3: ad.UpdateAdRequest.title:type_name -> google.protobuf.StringValue
+	15, // 4: ad.UpdateAdRequest.description:type_name -> google.protobuf.StringValue
+	16, // 5: ad.UpdateAdRequest.price:type_name -> google.protobuf.Int64Value
+	0,  // 6: ad.CreateAdWithImagesResponse.ad:type_name -> ad.Ad
+	1,  // 7: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
+	3,  // 8: ad.AdService.GetAd:input_type -> ad.GetAdRequest
+	5,  // 9: ad.AdService.ListAds:input_type -> ad.ListAdsRequest
+	7,  // 10: ad.AdService.UpdateAd:input_type -> ad.UpdateAdRequest
+	9,  // 11: ad.AdService.DeleteAd:input_type -> ad.DeleteAdRequest
+	11, // 12: ad.AdService.AttachMedia:input_type -> ad.AttachMediaRequest
+	13, // 13: ad.AdService.CreateAdWithImages:input_type -> ad.CreateAdWithImagesRequest
+	2,  // 14: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
+	4,  // 15: ad.AdService.GetAd:output_type -> ad.GetAdResponse
+	6,  // 16: ad.AdService.ListAds:output_type -> ad.ListAdsResponse
+	8,  // 17: ad.AdService.UpdateAd:output_type -> ad.UpdateAdResponse
+	10, // 18: ad.AdService.DeleteAd:output_type -> ad.DeleteAdResponse
+	12, // 19: ad.AdService.AttachMedia:output_type -> ad.AttachMediaResponse
+	14, // 20: ad.AdService.CreateAdWithImages:output_type -> ad.CreateAdWithImagesResponse
+	14, // [14:21] is the sub-list for method output_type
+	7,  // [7:14] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_ad_proto_init() }
@@ -1132,7 +1065,7 @@ func file_ad_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ad_proto_rawDesc), len(file_ad_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

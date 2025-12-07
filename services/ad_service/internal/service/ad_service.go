@@ -15,6 +15,7 @@ type repoInterface interface {
 	Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error
 	Delete(ctx context.Context, id string, authorID string) error
 	AttachMedia(ctx context.Context, adID, mediaID string) error
+	ListImages(ctx context.Context, adID string) ([]model.AdImage, error)
 }
 
 type AdService struct {
@@ -57,7 +58,17 @@ func (s *AdService) CreateAd(ctx context.Context, userID, title, description str
 
 // GetAd(ad_id)
 func (s *AdService) GetAd(ctx context.Context, adID string) (*model.Ad, error) {
-	return s.repo.Get(ctx, adID)
+	ad, err := s.repo.Get(ctx, adID)
+	if err != nil {
+		return nil, err
+	}
+	images, err := s.repo.ListImages(ctx, adID)
+	if err != nil {
+		return nil, err
+	}
+	// attach images to ad model for use in transport layer
+	ad.Images = images
+	return ad, nil
 }
 
 // ListAds(filters)

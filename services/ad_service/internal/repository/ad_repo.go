@@ -44,6 +44,23 @@ func (r *AdRepository) Get(ctx context.Context, id string) (*model.Ad, error) {
 	return &ad, nil
 }
 
+func (r *AdRepository) ListImages(ctx context.Context, adID string) ([]model.AdImage, error) {
+	rows, err := r.pool.Query(ctx, `SELECT id, ad_id, url, is_primary, position FROM ad_images WHERE ad_id=$1 ORDER BY position ASC, id ASC`, adID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var images []model.AdImage
+	for rows.Next() {
+		var img model.AdImage
+		if err := rows.Scan(&img.ID, &img.AdID, &img.URL, &img.IsPrimary, &img.Position); err != nil {
+			return nil, err
+		}
+		images = append(images, img)
+	}
+	return images, nil
+}
+
 func (r *AdRepository) Search(ctx context.Context, text string, categoryID *string, priceMin, priceMax *int64, condition *string, limit, offset int) ([]model.Ad, int, error) {
 	// Simplified search (will extend later with proper builder)
 	query := `SELECT id, author_id, title, description, price, category_id, condition, status, seller_rating_cached, created_at, updated_at FROM ads WHERE 1=1`

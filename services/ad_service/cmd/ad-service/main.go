@@ -43,6 +43,12 @@ func toPb(ad *model.Ad) *adpb.Ad {
 	if ad.SellerRatingCached != nil {
 		rating = *ad.SellerRatingCached
 	}
+	imageURLs := make([]string, 0, len(ad.Images))
+	for _, img := range ad.Images {
+		if img.URL != "" {
+			imageURLs = append(imageURLs, img.URL)
+		}
+	}
 	return &adpb.Ad{
 		Id:           ad.ID,
 		AuthorId:     ad.AuthorID,
@@ -51,7 +57,7 @@ func toPb(ad *model.Ad) *adpb.Ad {
 		Price:        ad.Price,
 		CategoryId:   ad.CategoryID,
 		Condition:    ad.Condition,
-		ImageUrls:    []string{}, // will fill when image repository added
+		ImageUrls:    imageURLs,
 		SellerRating: rating,
 		CreatedAt:    ad.CreatedAt.Unix(),
 		UpdatedAt:    ad.UpdatedAt.Unix(),
@@ -143,6 +149,12 @@ func (s *adServer) DeleteAd(ctx context.Context, req *adpb.DeleteAdRequest) (*ad
 }
 
 func (s *adServer) AttachMedia(ctx context.Context, req *adpb.AttachMediaRequest) (*adpb.AttachMediaResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.MediaId == "" {
+		return nil, status.Error(codes.InvalidArgument, "media_id is required")
+	}
 	if err := s.svc.AttachMedia(ctx, req.AdId, req.MediaId); err != nil {
 		return nil, err
 	}
@@ -154,7 +166,7 @@ func (s *adServer) CreateAdWithImages(ctx context.Context, req *adpb.CreateAdWit
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 
-	ad, err := s.svc.CreateAdWithImages(ctx, req.UserId, req.Title, req.Description, req.Price, nil)
+	ad, err := s.svc.CreateAdWithImages(ctx, req.UserId, req.Title, req.Description, req.Price, req.MediaIds)
 	if err != nil {
 		return nil, err
 	}
