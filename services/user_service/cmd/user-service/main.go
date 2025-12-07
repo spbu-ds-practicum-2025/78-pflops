@@ -42,6 +42,37 @@ func (s *userServiceServer) Login(ctx context.Context, req *proto.LoginRequest) 
 	return &proto.LoginResponse{Token: token}, nil
 }
 
+func (s *userServiceServer) ValidateToken(ctx context.Context, req *proto.ValidateRequest) (*proto.ValidateResponse, error) {
+	userID, valid, err := s.service.Validate(ctx, req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.ValidateResponse{UserId: userID, Valid: valid}, nil
+}
+
+func (s *userServiceServer) GetProfile(ctx context.Context, req *proto.GetProfileRequest) (*proto.GetProfileResponse, error) {
+	user, err := s.service.GetProfile(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.GetProfileResponse{UserId: user.ID, Name: user.Name}, nil
+}
+
+func (s *userServiceServer) UpdateProfile(ctx context.Context, req *proto.UpdateProfileRequest) (*proto.UpdateProfileResponse, error) {
+	if err := s.service.UpdateProfile(ctx, req.UserId, req.Name); err != nil {
+		return &proto.UpdateProfileResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &proto.UpdateProfileResponse{Success: true, Message: "profile updated"}, nil
+}
+
+func (s *userServiceServer) DeleteUser(ctx context.Context, req *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
+	// В упрощённом варианте пароль не проверяем, только наличие токена/ID
+	if err := s.service.DeleteUser(ctx, req.UserId); err != nil {
+		return &proto.DeleteUserResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &proto.DeleteUserResponse{Success: true, Message: "user deleted"}, nil
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
