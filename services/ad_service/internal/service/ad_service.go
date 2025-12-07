@@ -117,13 +117,21 @@ func (s *AdService) CreateAdWithImages(ctx context.Context, userID, title, descr
 	if err != nil {
 		return nil, err
 	}
+	var attached []string
 	for _, mid := range mediaIDs {
 		if mid == "" {
 			continue
 		}
 		if err := s.AttachMedia(ctx, ad.ID, mid); err != nil {
+			// Cleanup: detach any media that was already attached
+			for _, attachedMid := range attached {
+				_ = s.DetachMedia(ctx, ad.ID, attachedMid)
+			}
+			// Cleanup: delete the ad
+			_ = s.DeleteAd(ctx, ad.ID, userID)
 			return nil, err
 		}
+		attached = append(attached, mid)
 	}
 	return ad, nil
 }
