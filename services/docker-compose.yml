@@ -84,6 +84,7 @@ services:
     container_name: media_service_minio
     ports:
       - "${MINIO_PORT_WEBUI}:9001"
+      - "${MINIO_PORT_API}:9000"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
@@ -104,8 +105,6 @@ services:
     depends_on:
       - ad_service
     command: ["-plaintext", "ad_service:${AD_SERVICE_PORT}"]
-    ports:
-      - "8080:8080"
 
   us_grpcui:
     image: fullstorydev/grpcui:latest
@@ -113,8 +112,6 @@ services:
     depends_on:
       - user_service
     command: ["-plaintext", "user_service:${USER_SERVICE_PORT}"]
-    ports:
-      - "8081:8080"
 
   ms_grpcui:
     image: fullstorydev/grpcui:latest
@@ -123,10 +120,20 @@ services:
       media-service:
         condition: service_healthy
     command: ["-plaintext", "media-service:${MEDIA_SERVICE_PORT}"]
-    ports:
-      - "8082:8080"
     restart: unless-stopped
 
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx 
+    ports:
+      - "${NGINX_HTTP_PORT}:80"
+    depends_on:
+      - ad_grpcui
+      - us_grpcui
+      - ms_grpcui
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    restart: unless-stopped
 
 volumes:
   ad_service_db_data:
