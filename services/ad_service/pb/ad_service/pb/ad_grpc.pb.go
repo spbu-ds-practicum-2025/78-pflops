@@ -25,6 +25,8 @@ const (
 	AdService_UpdateAd_FullMethodName           = "/ad.AdService/UpdateAd"
 	AdService_DeleteAd_FullMethodName           = "/ad.AdService/DeleteAd"
 	AdService_AttachMedia_FullMethodName        = "/ad.AdService/AttachMedia"
+	AdService_DetachMedia_FullMethodName        = "/ad.AdService/DetachMedia"
+	AdService_ReplaceImages_FullMethodName      = "/ad.AdService/ReplaceImages"
 	AdService_CreateAdWithImages_FullMethodName = "/ad.AdService/CreateAdWithImages"
 )
 
@@ -38,6 +40,8 @@ type AdServiceClient interface {
 	UpdateAd(ctx context.Context, in *UpdateAdRequest, opts ...grpc.CallOption) (*UpdateAdResponse, error)
 	DeleteAd(ctx context.Context, in *DeleteAdRequest, opts ...grpc.CallOption) (*DeleteAdResponse, error)
 	AttachMedia(ctx context.Context, in *AttachMediaRequest, opts ...grpc.CallOption) (*AttachMediaResponse, error)
+	DetachMedia(ctx context.Context, in *DetachMediaRequest, opts ...grpc.CallOption) (*DetachMediaResponse, error)
+	ReplaceImages(ctx context.Context, in *ReplaceImagesRequest, opts ...grpc.CallOption) (*ReplaceImagesResponse, error)
 	CreateAdWithImages(ctx context.Context, in *CreateAdWithImagesRequest, opts ...grpc.CallOption) (*CreateAdWithImagesResponse, error)
 }
 
@@ -109,6 +113,26 @@ func (c *adServiceClient) AttachMedia(ctx context.Context, in *AttachMediaReques
 	return out, nil
 }
 
+func (c *adServiceClient) DetachMedia(ctx context.Context, in *DetachMediaRequest, opts ...grpc.CallOption) (*DetachMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DetachMediaResponse)
+	err := c.cc.Invoke(ctx, AdService_DetachMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adServiceClient) ReplaceImages(ctx context.Context, in *ReplaceImagesRequest, opts ...grpc.CallOption) (*ReplaceImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReplaceImagesResponse)
+	err := c.cc.Invoke(ctx, AdService_ReplaceImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adServiceClient) CreateAdWithImages(ctx context.Context, in *CreateAdWithImagesRequest, opts ...grpc.CallOption) (*CreateAdWithImagesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateAdWithImagesResponse)
@@ -129,6 +153,8 @@ type AdServiceServer interface {
 	UpdateAd(context.Context, *UpdateAdRequest) (*UpdateAdResponse, error)
 	DeleteAd(context.Context, *DeleteAdRequest) (*DeleteAdResponse, error)
 	AttachMedia(context.Context, *AttachMediaRequest) (*AttachMediaResponse, error)
+	DetachMedia(context.Context, *DetachMediaRequest) (*DetachMediaResponse, error)
+	ReplaceImages(context.Context, *ReplaceImagesRequest) (*ReplaceImagesResponse, error)
 	CreateAdWithImages(context.Context, *CreateAdWithImagesRequest) (*CreateAdWithImagesResponse, error)
 	mustEmbedUnimplementedAdServiceServer()
 }
@@ -157,6 +183,12 @@ func (UnimplementedAdServiceServer) DeleteAd(context.Context, *DeleteAdRequest) 
 }
 func (UnimplementedAdServiceServer) AttachMedia(context.Context, *AttachMediaRequest) (*AttachMediaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AttachMedia not implemented")
+}
+func (UnimplementedAdServiceServer) DetachMedia(context.Context, *DetachMediaRequest) (*DetachMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DetachMedia not implemented")
+}
+func (UnimplementedAdServiceServer) ReplaceImages(context.Context, *ReplaceImagesRequest) (*ReplaceImagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReplaceImages not implemented")
 }
 func (UnimplementedAdServiceServer) CreateAdWithImages(context.Context, *CreateAdWithImagesRequest) (*CreateAdWithImagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAdWithImages not implemented")
@@ -290,6 +322,42 @@ func _AdService_AttachMedia_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdService_DetachMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DetachMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).DetachMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdService_DetachMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).DetachMedia(ctx, req.(*DetachMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdService_ReplaceImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplaceImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).ReplaceImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdService_ReplaceImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).ReplaceImages(ctx, req.(*ReplaceImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdService_CreateAdWithImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateAdWithImagesRequest)
 	if err := dec(in); err != nil {
@@ -338,6 +406,14 @@ var AdService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AttachMedia",
 			Handler:    _AdService_AttachMedia_Handler,
+		},
+		{
+			MethodName: "DetachMedia",
+			Handler:    _AdService_DetachMedia_Handler,
+		},
+		{
+			MethodName: "ReplaceImages",
+			Handler:    _AdService_ReplaceImages_Handler,
 		},
 		{
 			MethodName: "CreateAdWithImages",

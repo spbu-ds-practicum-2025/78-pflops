@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"78-pflops/services/ad_service/internal/model"
 	"78-pflops/services/ad_service/internal/repository"
@@ -16,6 +17,8 @@ type repoInterface interface {
 	Delete(ctx context.Context, id string, authorID string) error
 	AttachMedia(ctx context.Context, adID, mediaID string) error
 	ListImages(ctx context.Context, adID string) ([]model.AdImage, error)
+	DetachMedia(ctx context.Context, adID, mediaID string) error
+	ReplaceImages(ctx context.Context, adID string, mediaIDs []string) error
 }
 
 type AdService struct {
@@ -89,6 +92,24 @@ func (s *AdService) DeleteAd(ctx context.Context, adID, userID string) error {
 // AttachMedia(ad_id, media_id)
 func (s *AdService) AttachMedia(ctx context.Context, adID, mediaID string) error {
 	return s.repo.AttachMedia(ctx, adID, mediaID)
+}
+
+// DetachMedia(ad_id, media_id)
+func (s *AdService) DetachMedia(ctx context.Context, adID, mediaID string) error {
+	return s.repo.DetachMedia(ctx, adID, mediaID)
+}
+
+// ReplaceImages(ad_id, media_ids)
+func (s *AdService) ReplaceImages(ctx context.Context, adID, userID string, mediaIDs []string) error {
+	// Авторизация по владельцу объявления (возможность добавить админа в будущем).
+	ad, err := s.repo.Get(ctx, adID)
+	if err != nil {
+		return err
+	}
+	if ad.AuthorID != userID {
+		return errors.New("not found or no permission")
+	}
+	return s.repo.ReplaceImages(ctx, adID, mediaIDs)
 }
 
 func (s *AdService) CreateAdWithImages(ctx context.Context, userID, title, description string, price int64, mediaIDs []string) (*model.Ad, error) {

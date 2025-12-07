@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"78-pflops/services/ad_service/internal/model"
@@ -154,6 +155,43 @@ func (r *AdRepository) AttachMedia(ctx context.Context, adID, mediaID string) er
 	id := uuid.New().String()
 	_, err := r.pool.Exec(ctx, `INSERT INTO ad_images (id, ad_id, url, is_primary, position) VALUES ($1,$2,$3,false,0)`, id, adID, mediaID)
 	return err
+}
+
+// DetachMedia removes link between an ad and a single media entry.
+func (r *AdRepository) DetachMedia(ctx context.Context, adID, mediaID string) error {
+	res, err := r.pool.Exec(ctx, `DELETE FROM ad_images WHERE ad_id=$1 AND url=$2`, adID, mediaID)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return errors.New("image not found for this ad")
+	}
+	return nil
+}
+
+// ReplaceImages performs full replacement of images for an ad.
+// Callers are responsible for permission checks (author/admin) before invoking.
+func (r *AdRepository) ReplaceImages(ctx context.Context, adID string, mediaIDs []string) error {
+	batch := &pgx.Batch{}
+	// remove existing images
+	batch.Queue(`DELETE FROM ad_images WHERE ad_id=$1`, adID)
+	// insert new ones in order
+	position := 0
+	for _, mid := range mediaIDs {
+		if mid == "" {
+			continue
+		}
+		position++
+		batch.Queue(`INSERT INTO ad_images (id, ad_id, url, is_primary, position) VALUES ($1,$2,$3,$4,$5)`, uuid.New().String(), adID, mid, position == 1, position)
+	}
+	br := r.pool.SendBatch(ctx, batch)
+	defer br.Close()
+	for i := 0; i < batch.Len(); i++ {
+		if _, err := br.Exec(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *AdRepository) Delete(ctx context.Context, id string, authorID string) error {

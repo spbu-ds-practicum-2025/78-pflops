@@ -174,6 +174,19 @@ func (s *adServer) AttachMedia(ctx context.Context, req *adpb.AttachMediaRequest
 	return &adpb.AttachMediaResponse{}, nil
 }
 
+func (s *adServer) DetachMedia(ctx context.Context, req *adpb.DetachMediaRequest) (*adpb.DetachMediaResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.MediaId == "" {
+		return nil, status.Error(codes.InvalidArgument, "media_id is required")
+	}
+	if err := s.svc.DetachMedia(ctx, req.AdId, req.MediaId); err != nil {
+		return nil, err
+	}
+	return &adpb.DetachMediaResponse{}, nil
+}
+
 func (s *adServer) CreateAdWithImages(ctx context.Context, req *adpb.CreateAdWithImagesRequest) (*adpb.CreateAdWithImagesResponse, error) {
 	if req.UserId == "" {
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
@@ -186,6 +199,19 @@ func (s *adServer) CreateAdWithImages(ctx context.Context, req *adpb.CreateAdWit
 
 	// пока игнорируем фактическую загрузку изображений, mediaIDs = nil
 	return &adpb.CreateAdWithImagesResponse{Ad: toPb(ad)}, nil
+}
+
+func (s *adServer) ReplaceImages(ctx context.Context, req *adpb.ReplaceImagesRequest) (*adpb.ReplaceImagesResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user_id is required")
+	}
+	if err := s.svc.ReplaceImages(ctx, req.AdId, req.UserId, req.MediaIds); err != nil {
+		return nil, err
+	}
+	return &adpb.ReplaceImagesResponse{}, nil
 }
 
 func main() {
