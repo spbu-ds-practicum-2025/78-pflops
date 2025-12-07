@@ -1,0 +1,134 @@
+services:
+  ad_service_db:
+    image: postgres:16
+    container_name: ad_service_db
+    environment:
+      POSTGRES_USER: ${AD_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AD_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AD_POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-U ${AD_POSTGRES_USER}"
+    command: ["postgres", "-p", "${AD_POSTGRES_PORT}"]
+    volumes:
+      - ./ad_service/internal/db/migrations:/docker-entrypoint-initdb.d
+      - ad_service_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p ${AD_POSTGRES_PORT} -U ${AD_POSTGRES_USER} -d ${AD_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ad_service:
+    build: ./ad_service
+    container_name: ad_service_app
+    depends_on:
+      ad_service_db:
+        condition: service_healthy
+    environment:
+      AD_DB_DSN: postgres://${AD_POSTGRES_USER}:${AD_POSTGRES_PASSWORD}@ad_service_db:${AD_POSTGRES_PORT}/${AD_POSTGRES_DB}?sslmode=disable
+      AD_SERVICE_PORT: ${AD_SERVICE_PORT}
+    restart: unless-stopped
+
+  user_service_db:
+    image: postgres:16
+    container_name: user_service_db
+    environment:
+      POSTGRES_USER: ${USER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${USER_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_POSTGRES_DB}
+    command: ["postgres", "-p", "${USER_POSTGRES_PORT}"]
+    volumes:
+      - ./user_service/internal/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+      - user_service_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p ${USER_POSTGRES_PORT} -U ${USER_POSTGRES_USER} -d ${USER_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  user_service:
+    build: ./user_service
+    container_name: user_service_app
+    depends_on:
+      user_service_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${USER_POSTGRES_USER}:${USER_POSTGRES_PASSWORD}@user_service_db:${USER_POSTGRES_PORT}/${USER_POSTGRES_DB}?sslmode=disable
+    restart: unless-stopped
+
+  media-service:
+    build: ./MediaService
+    container_name: media_service_app
+    ports:
+      - "${MEDIA_SERVICE_PORT}:50053"
+    environment:
+      - GRPC_PORT=${GRPC_PORT}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT} 
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "media-service", "${MEDIA_SERVICE_PORT}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: media_service_minio
+    ports:
+      - "${MINIO_PORT_WEBUI}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - media_service_minio_data:/data
+    command: server --console-address ":${MINIO_PORT_WEBUI}" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://minio:${MINIO_PORT_WEBUI}/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  ad_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: ad_grpcui 
+    depends_on:
+      - ad_service
+    command: ["-plaintext", "ad_service:${AD_SERVICE_PORT}"]
+    ports:
+      - "8080:8080"
+
+  us_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: us_grpcui 
+    depends_on:
+      - user_service
+    command: ["-plaintext", "user_service:${USER_SERVICE_PORT}"]
+    ports:
+      - "8081:8080"
+
+  ms_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: ms_grpcui 
+    depends_on:
+      media-service:
+        condition: service_healthy
+    command: ["-plaintext", "media-service:${MEDIA_SERVICE_PORT}"]
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
+
+
+volumes:
+  ad_service_db_data:
+  user_service_db_data:
+  media_service_minio_data:
