@@ -53,6 +53,9 @@ message UpdateAdRequest {
   google.protobuf.StringValue title = 3;       // optional
   google.protobuf.StringValue description = 4; // optional
   google.protobuf.Int64Value price = 5;        // optional
+  google.protobuf.StringValue category_id = 6; // optional
+  google.protobuf.StringValue condition = 7;   // optional
+  google.protobuf.StringValue status = 8;      // optional (ACTIVE, INACTIVE, SOLD)
 }
 
 message UpdateAdResponse {}

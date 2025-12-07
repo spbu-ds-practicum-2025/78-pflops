@@ -109,7 +109,7 @@ func (r *AdRepository) Search(ctx context.Context, text string, categoryID *stri
 	return list, len(list), nil
 }
 
-func (r *AdRepository) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error {
+func (r *AdRepository) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64, categoryID, condition, status *string) error {
 	set := "updated_at = NOW()"
 	args := []any{}
 	idx := 1
@@ -126,6 +126,15 @@ func (r *AdRepository) Update(ctx context.Context, id string, authorID string, t
 	}
 	if price != nil {
 		add("price =", *price)
+	}
+	if categoryID != nil {
+		add("category_id =", *categoryID)
+	}
+	if condition != nil {
+		add("condition =", *condition)
+	}
+	if status != nil {
+		add("status =", *status)
 	}
 	// WHERE id and author
 	query := fmt.Sprintf("UPDATE ads SET %s WHERE id = $%d AND author_id = $%d", set, idx, idx+1)

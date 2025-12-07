@@ -123,6 +123,7 @@ func (s *adServer) ListAds(ctx context.Context, req *adpb.ListAdsRequest) (*adpb
 func (s *adServer) UpdateAd(ctx context.Context, req *adpb.UpdateAdRequest) (*adpb.UpdateAdResponse, error) {
 	var titlePtr, descPtr *string
 	var pricePtr *int64
+	var categoryPtr, conditionPtr, statusPtr *string
 	if req.Title != nil {
 		v := req.Title.Value
 		titlePtr = &v
@@ -135,7 +136,19 @@ func (s *adServer) UpdateAd(ctx context.Context, req *adpb.UpdateAdRequest) (*ad
 		v := req.Price.Value
 		pricePtr = &v
 	}
-	if err := s.svc.UpdateAd(ctx, req.AdId, req.UserId, titlePtr, descPtr, pricePtr); err != nil {
+	if req.CategoryId != nil {
+		v := req.CategoryId.Value
+		categoryPtr = &v
+	}
+	if req.Condition != nil {
+		v := req.Condition.Value
+		conditionPtr = &v
+	}
+	if req.Status != nil {
+		v := req.Status.Value
+		statusPtr = &v
+	}
+	if err := s.svc.UpdateAd(ctx, req.AdId, req.UserId, titlePtr, descPtr, pricePtr, categoryPtr, conditionPtr, statusPtr); err != nil {
 		return nil, err
 	}
 	return &adpb.UpdateAdResponse{}, nil

@@ -510,9 +510,12 @@ type UpdateAdRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	AdId          string                  `protobuf:"bytes,1,opt,name=ad_id,json=adId,proto3" json:"ad_id,omitempty"`
 	UserId        string                  `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Title         *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`             // optional
-	Description   *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"` // optional
-	Price         *wrapperspb.Int64Value  `protobuf:"bytes,5,opt,name=price,proto3" json:"price,omitempty"`             // optional
+	Title         *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`                             // optional
+	Description   *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                 // optional
+	Price         *wrapperspb.Int64Value  `protobuf:"bytes,5,opt,name=price,proto3" json:"price,omitempty"`                             // optional
+	CategoryId    *wrapperspb.StringValue `protobuf:"bytes,6,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"` // optional
+	Condition     *wrapperspb.StringValue `protobuf:"bytes,7,opt,name=condition,proto3" json:"condition,omitempty"`                     // optional
+	Status        *wrapperspb.StringValue `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`                           // optional (ACTIVE, INACTIVE, SOLD)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -578,6 +581,27 @@ func (x *UpdateAdRequest) GetDescription() *wrapperspb.StringValue {
 func (x *UpdateAdRequest) GetPrice() *wrapperspb.Int64Value {
 	if x != nil {
 		return x.Price
+	}
+	return nil
+}
+
+func (x *UpdateAdRequest) GetCategoryId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.CategoryId
+	}
+	return nil
+}
+
+func (x *UpdateAdRequest) GetCondition() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Condition
+	}
+	return nil
+}
+
+func (x *UpdateAdRequest) GetStatus() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Status
 	}
 	return nil
 }
@@ -960,13 +984,17 @@ const file_ad_proto_rawDesc = "" +
 	"\x03ads\x18\x01 \x03(\v2\x06.ad.AdR\x03ads\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xe6\x01\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x97\x03\n" +
 	"\x0fUpdateAdRequest\x12\x13\n" +
 	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x122\n" +
 	"\x05title\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\x05title\x12>\n" +
 	"\vdescription\x18\x04 \x01(\v2\x1c.google.protobuf.StringValueR\vdescription\x121\n" +
-	"\x05price\x18\x05 \x01(\v2\x1b.google.protobuf.Int64ValueR\x05price\"\x12\n" +
+	"\x05price\x18\x05 \x01(\v2\x1b.google.protobuf.Int64ValueR\x05price\x12=\n" +
+	"\vcategory_id\x18\x06 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
+	"categoryId\x12:\n" +
+	"\tcondition\x18\a \x01(\v2\x1c.google.protobuf.StringValueR\tcondition\x124\n" +
+	"\x06status\x18\b \x01(\v2\x1c.google.protobuf.StringValueR\x06status\"\x12\n" +
 	"\x10UpdateAdResponse\"?\n" +
 	"\x0fDeleteAdRequest\x12\x13\n" +
 	"\x05ad_id\x18\x01 \x01(\tR\x04adId\x12\x17\n" +
@@ -1032,26 +1060,29 @@ var file_ad_proto_depIdxs = []int32{
 	15, // 3: ad.UpdateAdRequest.title:type_name -> google.protobuf.StringValue
 	15, // 4: ad.UpdateAdRequest.description:type_name -> google.protobuf.StringValue
 	16, // 5: ad.UpdateAdRequest.price:type_name -> google.protobuf.Int64Value
-	0,  // 6: ad.CreateAdWithImagesResponse.ad:type_name -> ad.Ad
-	1,  // 7: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
-	3,  // 8: ad.AdService.GetAd:input_type -> ad.GetAdRequest
-	5,  // 9: ad.AdService.ListAds:input_type -> ad.ListAdsRequest
-	7,  // 10: ad.AdService.UpdateAd:input_type -> ad.UpdateAdRequest
-	9,  // 11: ad.AdService.DeleteAd:input_type -> ad.DeleteAdRequest
-	11, // 12: ad.AdService.AttachMedia:input_type -> ad.AttachMediaRequest
-	13, // 13: ad.AdService.CreateAdWithImages:input_type -> ad.CreateAdWithImagesRequest
-	2,  // 14: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
-	4,  // 15: ad.AdService.GetAd:output_type -> ad.GetAdResponse
-	6,  // 16: ad.AdService.ListAds:output_type -> ad.ListAdsResponse
-	8,  // 17: ad.AdService.UpdateAd:output_type -> ad.UpdateAdResponse
-	10, // 18: ad.AdService.DeleteAd:output_type -> ad.DeleteAdResponse
-	12, // 19: ad.AdService.AttachMedia:output_type -> ad.AttachMediaResponse
-	14, // 20: ad.AdService.CreateAdWithImages:output_type -> ad.CreateAdWithImagesResponse
-	14, // [14:21] is the sub-list for method output_type
-	7,  // [7:14] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	15, // 6: ad.UpdateAdRequest.category_id:type_name -> google.protobuf.StringValue
+	15, // 7: ad.UpdateAdRequest.condition:type_name -> google.protobuf.StringValue
+	15, // 8: ad.UpdateAdRequest.status:type_name -> google.protobuf.StringValue
+	0,  // 9: ad.CreateAdWithImagesResponse.ad:type_name -> ad.Ad
+	1,  // 10: ad.AdService.CreateAd:input_type -> ad.CreateAdRequest
+	3,  // 11: ad.AdService.GetAd:input_type -> ad.GetAdRequest
+	5,  // 12: ad.AdService.ListAds:input_type -> ad.ListAdsRequest
+	7,  // 13: ad.AdService.UpdateAd:input_type -> ad.UpdateAdRequest
+	9,  // 14: ad.AdService.DeleteAd:input_type -> ad.DeleteAdRequest
+	11, // 15: ad.AdService.AttachMedia:input_type -> ad.AttachMediaRequest
+	13, // 16: ad.AdService.CreateAdWithImages:input_type -> ad.CreateAdWithImagesRequest
+	2,  // 17: ad.AdService.CreateAd:output_type -> ad.CreateAdResponse
+	4,  // 18: ad.AdService.GetAd:output_type -> ad.GetAdResponse
+	6,  // 19: ad.AdService.ListAds:output_type -> ad.ListAdsResponse
+	8,  // 20: ad.AdService.UpdateAd:output_type -> ad.UpdateAdResponse
+	10, // 21: ad.AdService.DeleteAd:output_type -> ad.DeleteAdResponse
+	12, // 22: ad.AdService.AttachMedia:output_type -> ad.AttachMediaResponse
+	14, // 23: ad.AdService.CreateAdWithImages:output_type -> ad.CreateAdWithImagesResponse
+	17, // [17:24] is the sub-list for method output_type
+	10, // [10:17] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_ad_proto_init() }

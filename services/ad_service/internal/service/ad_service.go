@@ -12,7 +12,7 @@ type repoInterface interface {
 	Create(ctx context.Context, ad *model.Ad) error
 	Get(ctx context.Context, id string) (*model.Ad, error)
 	Search(ctx context.Context, text string, categoryID *string, priceMin, priceMax *int64, condition *string, limit, offset int) ([]model.Ad, int, error)
-	Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error
+	Update(ctx context.Context, id string, authorID string, title, description *string, price *int64, categoryID, condition, status *string) error
 	Delete(ctx context.Context, id string, authorID string) error
 	AttachMedia(ctx context.Context, adID, mediaID string) error
 	ListImages(ctx context.Context, adID string) ([]model.AdImage, error)
@@ -76,9 +76,9 @@ func (s *AdService) ListAds(ctx context.Context, f Filters) ([]model.Ad, int, er
 	return s.repo.Search(ctx, f.Text, f.CategoryID, f.PriceMin, f.PriceMax, f.Condition, f.Limit, f.Offset)
 }
 
-// UpdateAd(ad_id, user_id, title?, description?, price?)
-func (s *AdService) UpdateAd(ctx context.Context, adID, userID string, title, description *string, price *int64) error {
-	return s.repo.Update(ctx, adID, userID, title, description, price)
+// UpdateAd(ad_id, user_id, title?, description?, price?, category_id?, condition?, status?)
+func (s *AdService) UpdateAd(ctx context.Context, adID, userID string, title, description *string, price *int64, categoryID, condition, status *string) error {
+	return s.repo.Update(ctx, adID, userID, title, description, price, categoryID, condition, status)
 }
 
 // DeleteAd(ad_id, user_id)
