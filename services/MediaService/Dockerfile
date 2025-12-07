@@ -14,4 +14,4 @@ COPY . .
 ENV PYTHONPATH=/app
 
 EXPOSE 50051
-CMD ["python", "cmd/media_service/main.py"]
+CMD ["python", "-u", "./cmd/media_service/main.py"]
