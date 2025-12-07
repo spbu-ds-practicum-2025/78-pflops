@@ -79,3 +79,19 @@ func (s *AdService) DeleteAd(ctx context.Context, adID, userID string) error {
 func (s *AdService) AttachMedia(ctx context.Context, adID, mediaID string) error {
 	return s.repo.AttachMedia(ctx, adID, mediaID)
 }
+
+func (s *AdService) CreateAdWithImages(ctx context.Context, userID, title, description string, price int64, mediaIDs []string) (*model.Ad, error) {
+	ad, err := s.CreateAd(ctx, userID, title, description, price)
+	if err != nil {
+		return nil, err
+	}
+	for _, mid := range mediaIDs {
+		if mid == "" {
+			continue
+		}
+		if err := s.AttachMedia(ctx, ad.ID, mid); err != nil {
+			return nil, err
+		}
+	}
+	return ad, nil
+}

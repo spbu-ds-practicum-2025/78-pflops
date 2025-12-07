@@ -19,12 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdService_CreateAd_FullMethodName    = "/ad.AdService/CreateAd"
-	AdService_GetAd_FullMethodName       = "/ad.AdService/GetAd"
-	AdService_ListAds_FullMethodName     = "/ad.AdService/ListAds"
-	AdService_UpdateAd_FullMethodName    = "/ad.AdService/UpdateAd"
-	AdService_DeleteAd_FullMethodName    = "/ad.AdService/DeleteAd"
-	AdService_AttachMedia_FullMethodName = "/ad.AdService/AttachMedia"
+	AdService_CreateAd_FullMethodName           = "/ad.AdService/CreateAd"
+	AdService_GetAd_FullMethodName              = "/ad.AdService/GetAd"
+	AdService_ListAds_FullMethodName            = "/ad.AdService/ListAds"
+	AdService_UpdateAd_FullMethodName           = "/ad.AdService/UpdateAd"
+	AdService_DeleteAd_FullMethodName           = "/ad.AdService/DeleteAd"
+	AdService_AttachMedia_FullMethodName        = "/ad.AdService/AttachMedia"
+	AdService_CreateAdWithImages_FullMethodName = "/ad.AdService/CreateAdWithImages"
 )
 
 // AdServiceClient is the client API for AdService service.
@@ -37,6 +38,7 @@ type AdServiceClient interface {
 	UpdateAd(ctx context.Context, in *UpdateAdRequest, opts ...grpc.CallOption) (*UpdateAdResponse, error)
 	DeleteAd(ctx context.Context, in *DeleteAdRequest, opts ...grpc.CallOption) (*DeleteAdResponse, error)
 	AttachMedia(ctx context.Context, in *AttachMediaRequest, opts ...grpc.CallOption) (*AttachMediaResponse, error)
+	CreateAdWithImages(ctx context.Context, in *CreateAdWithImagesRequest, opts ...grpc.CallOption) (*CreateAdWithImagesResponse, error)
 }
 
 type adServiceClient struct {
@@ -107,6 +109,16 @@ func (c *adServiceClient) AttachMedia(ctx context.Context, in *AttachMediaReques
 	return out, nil
 }
 
+func (c *adServiceClient) CreateAdWithImages(ctx context.Context, in *CreateAdWithImagesRequest, opts ...grpc.CallOption) (*CreateAdWithImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAdWithImagesResponse)
+	err := c.cc.Invoke(ctx, AdService_CreateAdWithImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdServiceServer is the server API for AdService service.
 // All implementations must embed UnimplementedAdServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type AdServiceServer interface {
 	UpdateAd(context.Context, *UpdateAdRequest) (*UpdateAdResponse, error)
 	DeleteAd(context.Context, *DeleteAdRequest) (*DeleteAdResponse, error)
 	AttachMedia(context.Context, *AttachMediaRequest) (*AttachMediaResponse, error)
+	CreateAdWithImages(context.Context, *CreateAdWithImagesRequest) (*CreateAdWithImagesResponse, error)
 	mustEmbedUnimplementedAdServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedAdServiceServer) DeleteAd(context.Context, *DeleteAdRequest) 
 }
 func (UnimplementedAdServiceServer) AttachMedia(context.Context, *AttachMediaRequest) (*AttachMediaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AttachMedia not implemented")
+}
+func (UnimplementedAdServiceServer) CreateAdWithImages(context.Context, *CreateAdWithImagesRequest) (*CreateAdWithImagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAdWithImages not implemented")
 }
 func (UnimplementedAdServiceServer) mustEmbedUnimplementedAdServiceServer() {}
 func (UnimplementedAdServiceServer) testEmbeddedByValue()                   {}
@@ -274,6 +290,24 @@ func _AdService_AttachMedia_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdService_CreateAdWithImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAdWithImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).CreateAdWithImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdService_CreateAdWithImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).CreateAdWithImages(ctx, req.(*CreateAdWithImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdService_ServiceDesc is the grpc.ServiceDesc for AdService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var AdService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AttachMedia",
 			Handler:    _AdService_AttachMedia_Handler,
+		},
+		{
+			MethodName: "CreateAdWithImages",
+			Handler:    _AdService_CreateAdWithImages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

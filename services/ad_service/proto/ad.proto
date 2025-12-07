@@ -63,6 +63,24 @@ message DeleteAdResponse {}
 message AttachMediaRequest { string ad_id = 1; string media_id = 2; }
 message AttachMediaResponse {}
 
+message ImageUpload {
+  bytes file_bytes = 1;
+  string mime_type = 2;
+  string file_name = 3;
+}
+
+message CreateAdWithImagesRequest {
+  string user_id = 1;       // идентификатор пользователя (уже валидированный снаружи)
+  string title = 2;
+  string description = 3;
+  int64 price = 4;
+  repeated ImageUpload images = 5;
+}
+
+message CreateAdWithImagesResponse {
+  Ad ad = 1;
+}
+
 service AdService {
   rpc CreateAd (CreateAdRequest) returns (CreateAdResponse);
   rpc GetAd (GetAdRequest) returns (GetAdResponse);
@@ -70,4 +88,5 @@ service AdService {
   rpc UpdateAd (UpdateAdRequest) returns (UpdateAdResponse);
   rpc DeleteAd (DeleteAdRequest) returns (DeleteAdResponse);
   rpc AttachMedia (AttachMediaRequest) returns (AttachMediaResponse);
+  rpc CreateAdWithImages (CreateAdWithImagesRequest) returns (CreateAdWithImagesResponse);
 }
