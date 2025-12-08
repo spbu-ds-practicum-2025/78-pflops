@@ -57,7 +57,13 @@ func (r *UserRepository) UpdateName(ctx context.Context, id, name string) error 
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Exec(ctx,
+	result, err := r.db.Exec(ctx,
 		`DELETE FROM users WHERE id = $1`, id)
-	return err
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
