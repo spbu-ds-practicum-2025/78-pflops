@@ -8,13 +8,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("secret")
+
 
 func getJWTKey() []byte {
 	if env := os.Getenv("JWT_SECRET"); env != "" {
 		return []byte(env)
 	}
-	return jwtKey
+	panic("JWT_SECRET environment variable is not set. Application cannot start without a secure JWT secret.")
 }
 
 func GenerateToken(userID string) (string, error) {
