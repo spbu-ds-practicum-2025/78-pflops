@@ -5,6 +5,7 @@ import (
 
 	"78-pflops/services/user_service/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -44,9 +45,15 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*model.User, e
 }
 
 func (r *UserRepository) UpdateName(ctx context.Context, id, name string) error {
-	_, err := r.db.Exec(ctx,
+	result, err := r.db.Exec(ctx,
 		`UPDATE users SET name = $1 WHERE id = $2`, name, id)
-	return err
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
