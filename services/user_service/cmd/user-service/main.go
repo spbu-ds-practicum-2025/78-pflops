@@ -6,9 +6,12 @@ import (
 	"78-pflops/services/user_service/internal/repository"
 	"78-pflops/services/user_service/internal/service"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -24,6 +27,109 @@ func newServer() *userServiceServer {
 	repo := repository.NewUserRepository(conn)
 	svc := service.NewUserService(repo)
 	return &userServiceServer{service: svc}
+}
+
+// HTTP handlers
+
+type httpServer struct {
+	svc *service.UserService
+}
+
+func newHTTPServer(svc *service.UserService) *httpServer {
+	return &httpServer{svc: svc}
+}
+
+func (h *httpServer) registerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Name     string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON"})
+		return
+	}
+	ctx := r.Context()
+	id, token, err := h.svc.Register(ctx, req.Email, req.Password, req.Name)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"id":    id,
+		"token": token,
+		"email": req.Email,
+		"name":  req.Name,
+	})
+}
+
+func (h *httpServer) loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON"})
+		return
+	}
+	ctx := r.Context()
+	token, err := h.svc.Login(ctx, req.Email, req.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"token": token,
+	})
+}
+
+func (h *httpServer) meHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	auth := r.Header.Get("Authorization")
+	if !strings.HasPrefix(auth, "Bearer ") {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "missing bearer token"})
+		return
+	}
+	token := strings.TrimPrefix(auth, "Bearer ")
+	ctx := r.Context()
+	userID, valid, err := h.svc.Validate(ctx, token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	if !valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid token"})
+		return
+	}
+	user, err := h.svc.GetProfile(ctx, userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"user_id": user.ID,
+		"name":    user.Name,
+		"email":   user.Email,
+	})
 }
 
 func (s *userServiceServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
@@ -74,18 +180,35 @@ func (s *userServiceServer) DeleteUser(ctx context.Context, req *proto.DeleteUse
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	// shared service layer
+	conn := db.Connect()
+	repo := repository.NewUserRepository(conn)
+	svc := service.NewUserService(repo)
 
-	grpcServer := grpc.NewServer()
-	proto.RegisterUserServiceServer(grpcServer, newServer())
+	// gRPC server
+	go func() {
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		grpcServer := grpc.NewServer()
+		proto.RegisterUserServiceServer(grpcServer, &userServiceServer{service: svc})
+		reflection.Register(grpcServer)
+		fmt.Println("✅ UserService gRPC running on port 50051")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
 
-	reflection.Register(grpcServer)
+	// HTTP server
+	httpSrv := newHTTPServer(svc)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/auth/register", httpSrv.registerHandler)
+	mux.HandleFunc("/api/auth/login", httpSrv.loginHandler)
+	mux.HandleFunc("/api/users/me", httpSrv.meHandler)
 
-	fmt.Println("✅ UserService running on port 50051")
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	fmt.Println("✅ UserService HTTP running on port 8081")
+	if err := http.ListenAndServe(":8081", mux); err != nil {
+		log.Fatalf("failed to serve HTTP: %v", err)
 	}
 }
