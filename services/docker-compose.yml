@@ -98,7 +98,7 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
-    command: server --console-address ":${MINIO_PORT_2}" /data
+    command: server --console-address ":9001" /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${MINIO_PORT_2}/minio/health/live"]
       interval: 10s
