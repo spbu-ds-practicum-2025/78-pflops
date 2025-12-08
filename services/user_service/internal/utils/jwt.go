@@ -8,8 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-
-
 func getJWTKey() []byte {
 	if env := os.Getenv("JWT_SECRET"); env != "" {
 		return []byte(env)
@@ -58,4 +56,8 @@ func ValidateToken(tokenStr string) (string, bool, error) {
 	}
 
 	return uid, true, nil
+}
+
+func GetJWTKey() []byte {
+	return getJWTKey()
 }
