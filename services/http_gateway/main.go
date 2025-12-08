@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,8 +16,9 @@ import (
 )
 
 type gateway struct {
-	userSvcAddr string
-	adSvcAddr   string
+	userSvcAddr  string
+	adSvcAddr    string
+	userHTTPBase string
 }
 
 type registerRequest struct {
@@ -52,8 +52,9 @@ func main() {
 	userSvcAddr := getenv("USER_SERVICE_ADDR", "user_service_app:50051")
 	adSvcAddr := getenv("AD_SERVICE_ADDR", "ad_service_app:50052")
 	port := getenv("HTTP_GATEWAY_PORT", "8081")
+	userHTTPBase := getenv("USER_HTTP_BASE", "http://user_service_app:8081")
 
-	g := &gateway{userSvcAddr: userSvcAddr, adSvcAddr: adSvcAddr}
+	g := &gateway{userSvcAddr: userSvcAddr, adSvcAddr: adSvcAddr, userHTTPBase: userHTTPBase}
 
 	http.HandleFunc("/api/auth/register", g.handleRegister)
 	http.HandleFunc("/api/auth/login", g.handleLogin)
@@ -204,17 +205,29 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	// сначала валидируем токен и получаем user_id
-	userConn, err := grpc.DialContext(ctx, g.userSvcAddr, grpc.WithInsecure())
+	// сначала валидируем токен через HTTP /api/users/me и получаем user_id
+	meReq, err := http.NewRequestWithContext(ctx, http.MethodGet, g.userHTTPBase+"/api/users/me", nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	meReq.Header.Set("Authorization", "Bearer "+req.Token)
+
+	resp, err := http.DefaultClient.Do(meReq)
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
-	defer userConn.Close()
+	defer resp.Body.Close()
 
-	userClient := userpb.NewUserServiceClient(userConn)
-	valResp, err := userClient.Validate(ctx, &userpb.ValidateRequest{Token: req.Token})
-	if err != nil || !valResp.GetValid() {
+	if resp.StatusCode != http.StatusOK {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	var me struct {
+		UserID string `json:"user_id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&me); err != nil || me.UserID == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -229,7 +242,7 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 	adClient := adpb.NewAdServiceClient(adConn)
 	// Пока создаём объявление без картинок через CreateAd
 	createResp, err := adClient.CreateAd(ctx, &adpb.CreateAdRequest{
-		UserId:      fmt.Sprintf("%d", valResp.GetUserId()),
+		UserId:      me.UserID,
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       int64(req.Price),

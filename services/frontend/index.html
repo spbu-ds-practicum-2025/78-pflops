@@ -106,27 +106,43 @@
       const email = document.getElementById('reg-email').value;
       const password = document.getElementById('reg-password').value;
       const name = document.getElementById('reg-name').value;
-      const res = await fetch(apiBase + '/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
-      });
-      const data = await res.json();
-      setToken(data.token);
-      alert('Регистрация успешна');
+      try {
+        const res = await fetch(apiBase + '/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert('Ошибка регистрации: ' + (data.error || res.status));
+          return;
+        }
+        setToken(data.token);
+        alert('Регистрация успешна');
+      } catch (e) {
+        alert('Ошибка сети при регистрации');
+      }
     };
 
     document.getElementById('btn-login').onclick = async () => {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-      const res = await fetch(apiBase + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      setToken(data.token);
-      alert('Логин успешен');
+      try {
+        const res = await fetch(apiBase + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert('Ошибка логина: ' + (data.error || res.status));
+          return;
+        }
+        setToken(data.token);
+        alert('Логин успешен');
+      } catch (e) {
+        alert('Ошибка сети при логине');
+      }
     };
 
     document.getElementById('btn-create-ad').onclick = async () => {
