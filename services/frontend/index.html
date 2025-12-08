@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Moonshine Marketplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0; background:#f3f4f6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { margin-bottom: 1rem; }
+    section { background:#fff; padding:1rem 1.25rem; margin-bottom:1rem; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+    label { display:block; margin-top:0.5rem; }
+    input, select, button, textarea { font: inherit; padding:0.35rem 0.5rem; margin-top:0.25rem; }
+    button { cursor:pointer; margin-top:0.5rem; }
+    .row { display:flex; gap:1rem; flex-wrap:wrap; }
+    .row > section { flex:1 1 280px; }
+    pre { background:#111827; color:#e5e7eb; padding:0.75rem; border-radius:6px; overflow:auto; font-size:0.85rem; }
+    .ads-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; margin-top:0.75rem; }
+    .ad-card { background:#fff; border-radius:8px; padding:0.75rem 0.9rem; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    .ad-card h4 { margin:0 0 0.25rem; font-size:1rem; }
+    .ad-card .price { font-weight:600; color:#059669; margin-bottom:0.25rem; }
+    .ad-card img { max-width:100%; border-radius:6px; margin-top:0.35rem; display:block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Moonshine Marketplace</h1>
+
+    <div class="row">
+      <section>
+        <h2>Регистрация</h2>
+        <label>Email <input id="reg-email" type="email" /></label>
+        <label>Пароль <input id="reg-password" type="password" /></label>
+        <label>Имя <input id="reg-name" type="text" /></label>
+        <button id="btn-register">Зарегистрироваться</button>
+      </section>
+
+      <section>
+        <h2>Логин</h2>
+        <label>Email <input id="login-email" type="email" /></label>
+        <label>Пароль <input id="login-password" type="password" /></label>
+        <button id="btn-login">Войти</button>
+        <p>Текущий токен:</p>
+        <pre id="token-view">(нет)</pre>
+      </section>
+    </div>
+
+    <section>
+      <h2>Создать объявление</h2>
+      <label>Заголовок <input id="ad-title" type="text" /></label>
+      <label>Описание <textarea id="ad-description" rows="3"></textarea></label>
+      <label>Цена <input id="ad-price" type="number" step="0.01" /></label>
+      <label>Категория <input id="ad-category" type="text" value="electronics" /></label>
+      <label>Фото <input id="ad-images" type="file" multiple /></label>
+      <button id="btn-create-ad">Создать объявление</button>
+    </section>
+
+    <section>
+      <h2>Поиск объявлений</h2>
+      <label>Поиск <input id="search-query" type="text" placeholder="Смартфон" /></label>
+      <label>Категория <input id="search-category" type="text" /></label>
+      <label>Цена от <input id="search-min" type="number" step="0.01" /></label>
+      <label>Цена до <input id="search-max" type="number" step="0.01" /></label>
+      <button id="btn-search">Искать</button>
+      <h3>Результаты</h3>
+      <div id="ads-container" class="ads-grid"></div>
+      <details>
+        <summary>Сырые данные (JSON)</summary>
+        <pre id="search-results"></pre>
+      </details>
+    </section>
+  </div>
+
+  <script>
+    const apiBase = '/api';
+
+    function setToken(token) {
+      if (token) {
+        localStorage.setItem('jwt', token);
+        document.getElementById('token-view').textContent = token;
+      }
+    }
+
+    function getToken() {
+      return localStorage.getItem('jwt') || '';
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            const parts = result.split(',', 2);
+            resolve(parts.length === 2 ? parts[1] : parts[0]);
+          } else {
+            reject(new Error('Unexpected FileReader result'));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('btn-register').onclick = async () => {
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const name = document.getElementById('reg-name').value;
+      const res = await fetch(apiBase + '/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
+      const data = await res.json();
+      setToken(data.token);
+      alert('Регистрация успешна');
+    };
+
+    document.getElementById('btn-login').onclick = async () => {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const res = await fetch(apiBase + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      setToken(data.token);
+      alert('Логин успешен');
+    };
+
+    document.getElementById('btn-create-ad').onclick = async () => {
+      const token = getToken();
+      if (!token) {
+        alert('Сначала залогиньтесь');
+        return;
+      }
+      const title = document.getElementById('ad-title').value;
+      const description = document.getElementById('ad-description').value;
+      const price = parseFloat(document.getElementById('ad-price').value || '0');
+      const category = document.getElementById('ad-category').value || 'general';
+      const files = document.getElementById('ad-images').files;
+
+      const images = [];
+      for (const file of files) {
+        const b64 = await fileToBase64(file);
+        images.push(b64);
+      }
+
+      const res = await fetch(apiBase + '/ads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, title, description, price, category, images }),
+      });
+      const data = await res.json();
+      alert('Объявление создано');
+    };
+
+    document.getElementById('btn-search').onclick = async () => {
+      const params = new URLSearchParams();
+      const q = document.getElementById('search-query').value;
+      const category = document.getElementById('search-category').value;
+      const min = document.getElementById('search-min').value;
+      const max = document.getElementById('search-max').value;
+      if (q) params.set('query', q);
+      if (category) params.set('category', category);
+      if (min) params.set('min_price', min);
+      if (max) params.set('max_price', max);
+
+      const res = await fetch(apiBase + '/ads?' + params.toString());
+      const data = await res.json();
+
+      const container = document.getElementById('ads-container');
+      container.innerHTML = '';
+
+      const ads = data.ads || data.Ads || [];
+
+      if (Array.isArray(ads)) {
+        for (const ad of ads) {
+          const card = document.createElement('article');
+          card.className = 'ad-card';
+
+          const title = document.createElement('h4');
+          title.textContent = (ad.title || ad.Title || '') + (ad.id || ad.Id ? ' (#' + (ad.id || ad.Id) + ')' : '');
+          card.appendChild(title);
+
+          const priceElem = document.createElement('div');
+          priceElem.className = 'price';
+          const priceValue = ad.price ?? ad.Price ?? 0;
+          priceElem.textContent = priceValue + ' ₽';
+          card.appendChild(priceElem);
+
+          if (ad.category || ad.category_id || ad.CategoryId) {
+            const cat = document.createElement('div');
+            cat.style.fontSize = '0.85rem';
+            cat.style.color = '#6b7280';
+            cat.textContent = 'Категория: ' + (ad.category || ad.category_id || ad.CategoryId);
+            card.appendChild(cat);
+          }
+
+          if (ad.description || ad.Description) {
+            const desc = document.createElement('p');
+            desc.textContent = ad.description || ad.Description;
+            card.appendChild(desc);
+          }
+
+          const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+          if (Array.isArray(imgUrls) && imgUrls.length > 0) {
+            for (const url of imgUrls) {
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = ad.title || ad.Title || '';
+              card.appendChild(img);
+            }
+          }
+
+          container.appendChild(card);
+        }
+      }
+
+      document.getElementById('search-results').textContent = JSON.stringify(data, null, 2);
+    };
+
+    (function init() {
+      const t = getToken();
+      if (t) document.getElementById('token-view').textContent = t;
+    })();
+  </script>
+</body>
+</html>
