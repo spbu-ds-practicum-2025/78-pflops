@@ -7,13 +7,16 @@ import (
 	"78-pflops/services/user_service/internal/model"
 	"78-pflops/services/user_service/internal/utils"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
+	GetByID(ctx context.Context, id string) (*model.User, error)
+	UpdateName(ctx context.Context, id, name string) error
+	Delete(ctx context.Context, id string) error
 }
 
 type UserService struct {
@@ -73,4 +76,41 @@ func (s *UserService) Login(ctx context.Context, email, password string) (string
 	}
 
 	return utils.GenerateToken(user.ID)
+}
+
+// Validate проверяет JWT и возвращает userID и флаг валидности.
+func (s *UserService) Validate(ctx context.Context, token string) (string, bool, error) {
+	userID, valid, err := utils.ValidateToken(token)
+	if err != nil {
+		return "", false, err
+	}
+	if !valid {
+		return "", false, nil
+	}
+	// опционально можно проверить, что пользователь ещё существует
+	if _, err := s.repo.GetByID(ctx, userID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+	return userID, true, nil
+}
+
+// GetProfile возвращает профиль пользователя по ID.
+func (s *UserService) GetProfile(ctx context.Context, userID string) (*model.User, error) {
+	return s.repo.GetByID(ctx, userID)
+}
+
+// UpdateProfile обновляет только имя пользователя.
+func (s *UserService) UpdateProfile(ctx context.Context, userID, name string) error {
+	if name == "" {
+		return errors.New("name cannot be empty")
+	}
+	return s.repo.UpdateName(ctx, userID, name)
+}
+
+// DeleteUser удаляет пользователя по ID.
+func (s *UserService) DeleteUser(ctx context.Context, userID string) error {
+	return s.repo.Delete(ctx, userID)
 }

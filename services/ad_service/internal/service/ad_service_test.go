@@ -32,11 +32,22 @@ func (s *stubRepo) Get(ctx context.Context, id string) (*model.Ad, error) { retu
 func (s *stubRepo) Search(ctx context.Context, text string, categoryID *string, priceMin, priceMax *int64, condition *string, limit, offset int) ([]model.Ad, int, error) {
 	return s.searchAds, s.searchCnt, nil
 }
-func (s *stubRepo) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64) error {
+
+func (s *stubRepo) Update(ctx context.Context, id string, authorID string, title, description *string, price *int64, categoryID, condition, status *string) error {
 	return nil
 }
 func (s *stubRepo) Delete(ctx context.Context, id string, authorID string) error { return s.deleteErr }
 func (s *stubRepo) AttachMedia(ctx context.Context, adID, mediaID string) error  { return nil }
+
+func (s *stubRepo) ListImages(ctx context.Context, adID string) ([]model.AdImage, error) {
+	return nil, nil
+}
+
+func (s *stubRepo) DetachMedia(ctx context.Context, adID, mediaID string) error { return nil }
+
+func (s *stubRepo) ReplaceImages(ctx context.Context, adID string, mediaIDs []string) error {
+	return nil
+}
 
 func TestCreateAd(t *testing.T) {
 	repo := &stubRepo{}
@@ -100,7 +111,7 @@ func TestUpdateAd(t *testing.T) {
 	repo := &stubRepo{}
 	svc := &AdService{repo: repo}
 	title := "New"
-	if err := svc.UpdateAd(context.Background(), "ad1", "author-1", &title, nil, nil); err != nil {
+	if err := svc.UpdateAd(context.Background(), "ad1", "author-1", &title, nil, nil, nil, nil, nil); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

@@ -53,6 +53,9 @@ message UpdateAdRequest {
   google.protobuf.StringValue title = 3;       // optional
   google.protobuf.StringValue description = 4; // optional
   google.protobuf.Int64Value price = 5;        // optional
+  google.protobuf.StringValue category_id = 6; // optional
+  google.protobuf.StringValue condition = 7;   // optional
+  google.protobuf.StringValue status = 8;      // optional (ACTIVE, INACTIVE, SOLD)
 }
 
 message UpdateAdResponse {}
@@ -63,6 +66,29 @@ message DeleteAdResponse {}
 message AttachMediaRequest { string ad_id = 1; string media_id = 2; }
 message AttachMediaResponse {}
 
+message DetachMediaRequest { string ad_id = 1; string media_id = 2; }
+message DetachMediaResponse {}
+
+message ReplaceImagesRequest {
+  string ad_id = 1;
+  string user_id = 2;           // владелец (или админ в будущем)
+  repeated string media_ids = 3; // новый полный список медиа для объявления
+}
+
+message ReplaceImagesResponse {}
+
+message CreateAdWithImagesRequest {
+  string user_id = 1;       // идентификатор пользователя (уже валидированный снаружи)
+  string title = 2;
+  string description = 3;
+  int64 price = 4;
+  repeated string media_ids = 5; // идентификаторы уже загруженных медиа
+}
+
+message CreateAdWithImagesResponse {
+  Ad ad = 1;
+}
+
 service AdService {
   rpc CreateAd (CreateAdRequest) returns (CreateAdResponse);
   rpc GetAd (GetAdRequest) returns (GetAdResponse);
@@ -70,4 +96,7 @@ service AdService {
   rpc UpdateAd (UpdateAdRequest) returns (UpdateAdResponse);
   rpc DeleteAd (DeleteAdRequest) returns (DeleteAdResponse);
   rpc AttachMedia (AttachMediaRequest) returns (AttachMediaResponse);
+  rpc DetachMedia (DetachMediaRequest) returns (DetachMediaResponse);
+  rpc ReplaceImages (ReplaceImagesRequest) returns (ReplaceImagesResponse);
+  rpc CreateAdWithImages (CreateAdWithImagesRequest) returns (CreateAdWithImagesResponse);
 }

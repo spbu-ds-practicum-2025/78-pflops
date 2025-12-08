@@ -1,0 +1,149 @@
+services:
+  # User Service + DB
+  user_postgres:
+    image: postgres:16
+    container_name: user_service_db
+    environment:
+      POSTGRES_USER: ${USER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${USER_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_POSTGRES_DB}
+    ports:
+      - "${USER_POSTGRES_PORT}:5432"
+    volumes:
+      - ./user_service/internal/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_POSTGRES_USER} -d ${USER_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  user_service:
+    build: ./user_service
+    container_name: user_service_app
+    depends_on:
+      user_postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${USER_POSTGRES_USER}:${USER_POSTGRES_PASSWORD}@user_postgres:5432/${USER_POSTGRES_DB}?sslmode=disable
+      JWT_SECRET: ${USER_JWT_SECRET}
+    ports:
+      - "${USER_SERVICE_PORT}:50051"
+    restart: unless-stopped
+
+  user_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: user_service_ui
+    depends_on:
+      - user_service
+    command: ["-plaintext", "user_service_app:50051"]
+    ports:
+      - "${USER_GRPCUI_PORT}:8080"
+
+  # Ad Service + DB
+  ad_postgres:
+    image: postgres:16
+    container_name: ad_service_db
+    environment:
+      POSTGRES_USER: ${AD_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AD_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AD_POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-U ${AD_POSTGRES_USER}"
+    command: ["postgres", "-p", "5433"]
+    ports:
+      - "${AD_POSTGRES_PORT}:5433"
+    volumes:
+      - ./ad_service/internal/db/migrations:/docker-entrypoint-initdb.d
+      - ad_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 5433 -U ${AD_POSTGRES_USER} -d ${AD_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ad_service:
+    build: ./ad_service
+    container_name: ad_service_app
+    depends_on:
+      ad_postgres:
+        condition: service_healthy
+    environment:
+      AD_DB_DSN: postgres://${AD_POSTGRES_USER}:${AD_POSTGRES_PASSWORD}@ad_postgres:5433/${AD_POSTGRES_DB}?sslmode=disable
+      AD_SERVICE_PORT: ${AD_SERVICE_PORT}
+      MEDIA_SERVICE_URL: http://media_service_app:50053
+      USER_SERVICE_URL: grpc://user_service_app:50051
+    ports:
+      - "${AD_SERVICE_PORT}:50052"
+    restart: unless-stopped
+
+  ad_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: ad_service_ui
+    depends_on:
+      - ad_service
+    command: ["-plaintext", "ad_service_app:50052"]
+    ports:
+      - "${AD_GRPCUI_PORT}:8080"
+
+  # Media Service + Minio
+  minio:
+    image: minio/minio:latest
+    container_name: media_service_minio
+    ports:
+      - "${MINIO_PORT_1}:9000"
+      - "${MINIO_PORT_2}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MINIO_PORT_2}/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  media_service:
+    build: ./MediaService
+    container_name: media_service_app
+    ports:
+      - "${MEDIA_SERVICE_PORT}:50053"
+    environment:
+      - GRPC_PORT=${MEDIA_GRPC_PORT}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50053"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  media_grpcui:
+    image: fullstorydev/grpcui:latest
+    container_name: media_service_ui
+    depends_on:
+      media_service:
+        condition: service_healthy
+    command: ["-plaintext", "media_service_app:50053"]
+    ports:
+      - "${MEDIA_GRPCUI_PORT}:8080"
+    restart: unless-stopped
+
+volumes:
+  ad_postgres_data:
+  minio_data:
+
+networks:
+  default:
+    name: pflops_net

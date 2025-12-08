@@ -17,4 +17,5 @@ type Ad struct {
 	SellerRatingCached *float64
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+	Images             []AdImage
 }

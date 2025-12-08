@@ -11,17 +11,19 @@ import (
 	"78-pflops/services/ad_service/internal/model"
 	"78-pflops/services/ad_service/internal/repository"
 	"78-pflops/services/ad_service/internal/service"
-	pb "78-pflops/services/ad_service/pb/ad_service/pb"
+	adpb "78-pflops/services/ad_service/pb/ad_service/pb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 // TODO: import generated proto after we create ad.proto
 // import "78-pflops/services/ad_service/pb/ad_service/pb"
 
 type adServer struct {
-	pb.UnimplementedAdServiceServer
+	adpb.UnimplementedAdServiceServer
 	svc *service.AdService
 }
 
@@ -33,7 +35,7 @@ func newServer() *adServer {
 }
 
 // helper: convert domain model to protobuf
-func toPb(ad *model.Ad) *pb.Ad {
+func toPb(ad *model.Ad) *adpb.Ad {
 	if ad == nil {
 		return nil
 	}
@@ -41,7 +43,13 @@ func toPb(ad *model.Ad) *pb.Ad {
 	if ad.SellerRatingCached != nil {
 		rating = *ad.SellerRatingCached
 	}
-	return &pb.Ad{
+	imageURLs := make([]string, 0, len(ad.Images))
+	for _, img := range ad.Images {
+		if img.URL != "" {
+			imageURLs = append(imageURLs, img.URL)
+		}
+	}
+	return &adpb.Ad{
 		Id:           ad.ID,
 		AuthorId:     ad.AuthorID,
 		Title:        ad.Title,
@@ -49,7 +57,7 @@ func toPb(ad *model.Ad) *pb.Ad {
 		Price:        ad.Price,
 		CategoryId:   ad.CategoryID,
 		Condition:    ad.Condition,
-		ImageUrls:    []string{}, // will fill when image repository added
+		ImageUrls:    imageURLs,
 		SellerRating: rating,
 		CreatedAt:    ad.CreatedAt.Unix(),
 		UpdatedAt:    ad.UpdatedAt.Unix(),
@@ -57,23 +65,23 @@ func toPb(ad *model.Ad) *pb.Ad {
 }
 
 // CreateAd implements gRPC CreateAd
-func (s *adServer) CreateAd(ctx context.Context, req *pb.CreateAdRequest) (*pb.CreateAdResponse, error) {
+func (s *adServer) CreateAd(ctx context.Context, req *adpb.CreateAdRequest) (*adpb.CreateAdResponse, error) {
 	ad, err := s.svc.CreateAd(ctx, req.UserId, req.Title, req.Description, req.Price)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CreateAdResponse{Ad: toPb(ad)}, nil
+	return &adpb.CreateAdResponse{Ad: toPb(ad)}, nil
 }
 
-func (s *adServer) GetAd(ctx context.Context, req *pb.GetAdRequest) (*pb.GetAdResponse, error) {
+func (s *adServer) GetAd(ctx context.Context, req *adpb.GetAdRequest) (*adpb.GetAdResponse, error) {
 	ad, err := s.svc.GetAd(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.GetAdResponse{Ad: toPb(ad)}, nil
+	return &adpb.GetAdResponse{Ad: toPb(ad)}, nil
 }
 
-func (s *adServer) ListAds(ctx context.Context, req *pb.ListAdsRequest) (*pb.ListAdsResponse, error) {
+func (s *adServer) ListAds(ctx context.Context, req *adpb.ListAdsRequest) (*adpb.ListAdsResponse, error) {
 	limit := int(req.PageSize)
 	if limit <= 0 {
 		limit = 10
@@ -105,16 +113,17 @@ func (s *adServer) ListAds(ctx context.Context, req *pb.ListAdsRequest) (*pb.Lis
 	if err != nil {
 		return nil, err
 	}
-	respAds := make([]*pb.Ad, 0, len(ads))
+	respAds := make([]*adpb.Ad, 0, len(ads))
 	for i := range ads {
 		respAds = append(respAds, toPb(&ads[i]))
 	}
-	return &pb.ListAdsResponse{Ads: respAds, Total: int32(total), Page: int32(page), PageSize: int32(limit)}, nil
+	return &adpb.ListAdsResponse{Ads: respAds, Total: int32(total), Page: int32(page), PageSize: int32(limit)}, nil
 }
 
-func (s *adServer) UpdateAd(ctx context.Context, req *pb.UpdateAdRequest) (*pb.UpdateAdResponse, error) {
+func (s *adServer) UpdateAd(ctx context.Context, req *adpb.UpdateAdRequest) (*adpb.UpdateAdResponse, error) {
 	var titlePtr, descPtr *string
 	var pricePtr *int64
+	var categoryPtr, conditionPtr, statusPtr *string
 	if req.Title != nil {
 		v := req.Title.Value
 		titlePtr = &v
@@ -127,24 +136,82 @@ func (s *adServer) UpdateAd(ctx context.Context, req *pb.UpdateAdRequest) (*pb.U
 		v := req.Price.Value
 		pricePtr = &v
 	}
-	if err := s.svc.UpdateAd(ctx, req.AdId, req.UserId, titlePtr, descPtr, pricePtr); err != nil {
+	if req.CategoryId != nil {
+		v := req.CategoryId.Value
+		categoryPtr = &v
+	}
+	if req.Condition != nil {
+		v := req.Condition.Value
+		conditionPtr = &v
+	}
+	if req.Status != nil {
+		v := req.Status.Value
+		statusPtr = &v
+	}
+	if err := s.svc.UpdateAd(ctx, req.AdId, req.UserId, titlePtr, descPtr, pricePtr, categoryPtr, conditionPtr, statusPtr); err != nil {
 		return nil, err
 	}
-	return &pb.UpdateAdResponse{}, nil
+	return &adpb.UpdateAdResponse{}, nil
 }
 
-func (s *adServer) DeleteAd(ctx context.Context, req *pb.DeleteAdRequest) (*pb.DeleteAdResponse, error) {
+func (s *adServer) DeleteAd(ctx context.Context, req *adpb.DeleteAdRequest) (*adpb.DeleteAdResponse, error) {
 	if err := s.svc.DeleteAd(ctx, req.AdId, req.UserId); err != nil {
 		return nil, err
 	}
-	return &pb.DeleteAdResponse{}, nil
+	return &adpb.DeleteAdResponse{}, nil
 }
 
-func (s *adServer) AttachMedia(ctx context.Context, req *pb.AttachMediaRequest) (*pb.AttachMediaResponse, error) {
+func (s *adServer) AttachMedia(ctx context.Context, req *adpb.AttachMediaRequest) (*adpb.AttachMediaResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.MediaId == "" {
+		return nil, status.Error(codes.InvalidArgument, "media_id is required")
+	}
 	if err := s.svc.AttachMedia(ctx, req.AdId, req.MediaId); err != nil {
 		return nil, err
 	}
-	return &pb.AttachMediaResponse{}, nil
+	return &adpb.AttachMediaResponse{}, nil
+}
+
+func (s *adServer) DetachMedia(ctx context.Context, req *adpb.DetachMediaRequest) (*adpb.DetachMediaResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.MediaId == "" {
+		return nil, status.Error(codes.InvalidArgument, "media_id is required")
+	}
+	if err := s.svc.DetachMedia(ctx, req.AdId, req.MediaId); err != nil {
+		return nil, err
+	}
+	return &adpb.DetachMediaResponse{}, nil
+}
+
+func (s *adServer) CreateAdWithImages(ctx context.Context, req *adpb.CreateAdWithImagesRequest) (*adpb.CreateAdWithImagesResponse, error) {
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user_id is required")
+	}
+
+	ad, err := s.svc.CreateAdWithImages(ctx, req.UserId, req.Title, req.Description, req.Price, req.MediaIds)
+	if err != nil {
+		return nil, err
+	}
+
+	// пока игнорируем фактическую загрузку изображений, mediaIDs = nil
+	return &adpb.CreateAdWithImagesResponse{Ad: toPb(ad)}, nil
+}
+
+func (s *adServer) ReplaceImages(ctx context.Context, req *adpb.ReplaceImagesRequest) (*adpb.ReplaceImagesResponse, error) {
+	if req.AdId == "" {
+		return nil, status.Error(codes.InvalidArgument, "ad_id is required")
+	}
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user_id is required")
+	}
+	if err := s.svc.ReplaceImages(ctx, req.AdId, req.UserId, req.MediaIds); err != nil {
+		return nil, err
+	}
+	return &adpb.ReplaceImagesResponse{}, nil
 }
 
 func main() {
@@ -154,7 +221,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAdServiceServer(grpcServer, newServer())
+	adpb.RegisterAdServiceServer(grpcServer, newServer())
 
 	reflection.Register(grpcServer)
 
