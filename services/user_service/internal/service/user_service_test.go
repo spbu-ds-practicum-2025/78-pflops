@@ -101,7 +101,7 @@ func TestRegisterSuccess(t *testing.T) {
 		t.Fatalf("password should be hashed")
 	}
 	// decode JWT
-	parsed, perr := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) { return []byte("secret"), nil })
+	parsed, perr := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) { return []byte(utils.GetJWTKey()), nil })
 	if perr != nil || !parsed.Valid {
 		t.Fatalf("token invalid: %v", perr)
 	}
