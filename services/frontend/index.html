@@ -4,80 +4,828 @@
   <meta charset="utf-8" />
   <title>Moonshine Marketplace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 0; background:#f3f4f6; }
-    .container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
-    h1 { margin-bottom: 1rem; }
-    section { background:#fff; padding:1rem 1.25rem; margin-bottom:1rem; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
-    label { display:block; margin-top:0.5rem; }
-    input, select, button, textarea { font: inherit; padding:0.35rem 0.5rem; margin-top:0.25rem; }
-    button { cursor:pointer; margin-top:0.5rem; }
-    .row { display:flex; gap:1rem; flex-wrap:wrap; }
-    .row > section { flex:1 1 280px; }
-    pre { background:#111827; color:#e5e7eb; padding:0.75rem; border-radius:6px; overflow:auto; font-size:0.85rem; }
-    .ads-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; margin-top:0.75rem; }
-    .ad-card { background:#fff; border-radius:8px; padding:0.75rem 0.9rem; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-    .ad-card h4 { margin:0 0 0.25rem; font-size:1rem; }
-    .ad-card .price { font-weight:600; color:#059669; margin-bottom:0.25rem; }
-    .ad-card img { max-width:100%; border-radius:6px; margin-top:0.35rem; display:block; }
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --secondary: #10b981;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --gray-light: #e2e8f0;
+      --error: #ef4444;
+      --success: #10b981;
+      --border-radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Темная тема */
+    .dark-mode {
+      --light: #0f172a;
+      --dark: #f1f5f9;
+      --gray: #94a3b8;
+      --gray-light: #334155;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Фоновые градиенты для светлой и темной темы */
+    body:not(.dark-mode) {
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 20%);
+    }
+
+    body.dark-mode {
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .logo i {
+      font-size: 2rem;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: none;
+      color: var(--dark);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background-color: var(--gray-light);
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--gray);
+      color: white;
+    }
+
+    .theme-toggle i {
+      font-size: 1.2rem;
+    }
+
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--gray-light);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      font-size: 0.9rem;
+    }
+
+    .token-display {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+
+    body.dark-mode .token-display {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .auth-card {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .auth-card {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .auth-card h2 {
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--gray);
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .auth-card h2 i {
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 0.95rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+      background-color: var(--light);
+      color: var(--dark);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn i {
+      font-size: 1.1rem;
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+
+    .btn-secondary:hover {
+      background-color: #0da271;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+      font-size: 1.5rem;
+    }
+
+    .section-title i {
+      color: var(--primary);
+    }
+
+    .create-ad-section, .search-section {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .create-ad-section,
+    body.dark-mode .search-section {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background-color: var(--light);
+      border-radius: 8px;
+      border: 2px dashed var(--gray);
+      color: var(--dark);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .file-input-wrapper:hover .file-input-label {
+      background-color: rgba(124, 58, 237, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .search-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-btn-wrapper {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .search-btn-wrapper .btn {
+      width: auto;
+      padding: 0.75rem 2rem;
+    }
+
+    .ads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .ad-card {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .ad-card {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ad-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .ad-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-bottom: 1px solid var(--gray);
+    }
+
+    .no-image {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #7c3aed 0%, #10b981 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+
+    .ad-content {
+      padding: 1.25rem;
+    }
+
+    .ad-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--dark);
+      line-height: 1.3;
+    }
+
+    .ad-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-category {
+      display: inline-block;
+      background-color: rgba(124, 58, 237, 0.2);
+      color: var(--primary);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-description {
+      color: var(--gray);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ad-id {
+      font-size: 0.8rem;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-count {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    .raw-data {
+      background-color: var(--dark);
+      color: var(--light);
+      padding: 1.25rem;
+      border-radius: var(--border-radius);
+      margin-top: 2rem;
+      overflow: auto;
+      border: 1px solid var(--gray);
+    }
+
+    .raw-data summary {
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: block;
+      color: var(--light);
+    }
+
+    .raw-data pre {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .notification {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius);
+      color: white;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.3s ease;
+      max-width: 350px;
+      backdrop-filter: blur(10px);
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    body.dark-mode .notification {
+      background-color: rgba(0, 0, 0, 0.9);
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .notification.error {
+      border-left: 4px solid var(--error);
+    }
+
+    .notification.info {
+      border-left: 4px solid var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--gray);
+      margin-top: 3rem;
+    }
+
+    /* Переключатель темы с анимацией */
+    .theme-toggle .fa-sun {
+      display: none;
+    }
+
+    .theme-toggle .fa-moon {
+      display: inline-block;
+    }
+
+    body.dark-mode .theme-toggle .fa-sun {
+      display: inline-block;
+    }
+
+    body.dark-mode .theme-toggle .fa-moon {
+      display: none;
+    }
+
+    /* Загрузчик для изображений */
+    .image-loading {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(90deg, var(--gray) 25%, var(--gray-light) 50%, var(--gray) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .auth-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row, .search-filters {
+        grid-template-columns: 1fr;
+      }
+      
+      .ads-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .user-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* Плавный переход для переключения темы */
+    body.theme-transition {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Стили для пустого состояния */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      color: var(--gray);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Стили для скроллбара */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--gray-light);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
   </style>
 </head>
-<body>
+<body class="light-mode">
   <div class="container">
-    <h1>Moonshine Marketplace</h1>
+    <header>
+      <div class="logo">
+        <i class="fas fa-moon"></i>
+        <span>Moonshine Marketplace</span>
+      </div>
+      <div class="header-controls">
+        <button class="theme-toggle" id="theme-toggle" title="Переключить тему">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+          <span id="theme-text">Темная тема</span>
+        </button>
+        <div class="user-status">
+          <span>Статус: <strong id="auth-status">Не авторизован</strong></span>
+          <div class="token-display" id="token-view" title="Токен авторизации">
+            <i class="fas fa-key"></i> <span id="token-text">(нет токена)</span>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <div class="row">
-      <section>
-        <h2>Регистрация</h2>
-        <label>Email <input id="reg-email" type="email" /></label>
-        <label>Пароль <input id="reg-password" type="password" /></label>
-        <label>Имя <input id="reg-name" type="text" /></label>
-        <button id="btn-register">Зарегистрироваться</button>
+    <main>
+      <div class="auth-section">
+        <div class="auth-card">
+          <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input id="reg-email" type="email" placeholder="example@mail.com" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Пароль</label>
+            <input id="reg-password" type="password" placeholder="Не менее 6 символов" />
+          </div>
+          <div class="form-group">
+            <label for="reg-name">Имя</label>
+            <input id="reg-name" type="text" placeholder="Ваше имя" />
+          </div>
+          <button id="btn-register" class="btn">
+            <i class="fas fa-user-check"></i> Зарегистрироваться
+          </button>
+        </div>
+
+        <div class="auth-card">
+          <h2><i class="fas fa-sign-in-alt"></i> Вход в систему</h2>
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" placeholder="example@mail.com" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Пароль</label>
+            <input id="login-password" type="password" placeholder="Ваш пароль" />
+          </div>
+          <button id="btn-login" class="btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> Войти
+          </button>
+        </div>
+      </div>
+
+      <section class="create-ad-section">
+        <h2 class="section-title"><i class="fas fa-plus-circle"></i> Создать объявление</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ad-title">Заголовок</label>
+            <input id="ad-title" type="text" placeholder="Название товара или услуги" />
+          </div>
+          <div class="form-group">
+            <label for="ad-price">Цена (₽)</label>
+            <input id="ad-price" type="number" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label for="ad-category">Категория</label>
+            <input id="ad-category" type="text" value="electronics" placeholder="Электроника" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ad-description">Описание</label>
+          <textarea id="ad-description" rows="3" placeholder="Подробное описание товара или услуги..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Фотографии (можно выбрать несколько)</label>
+          <div class="file-input-wrapper">
+            <input id="ad-images" type="file" multiple accept="image/*" />
+            <div class="file-input-label">
+              <i class="fas fa-cloud-upload-alt"></i> 
+              <span>Выберите файлы или перетащите сюда</span>
+            </div>
+          </div>
+          <div id="file-list" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray);"></div>
+        </div>
+        <div class="search-btn-wrapper">
+          <button id="btn-create-ad" class="btn">
+            <i class="fas fa-bullhorn"></i> Опубликовать объявление
+          </button>
+        </div>
       </section>
 
-      <section>
-        <h2>Логин</h2>
-        <label>Email <input id="login-email" type="email" /></label>
-        <label>Пароль <input id="login-password" type="password" /></label>
-        <button id="btn-login">Войти</button>
-        <p>Текущий токен:</p>
-        <pre id="token-view">(нет)</pre>
+      <section class="search-section">
+        <div class="results-header">
+          <h2 class="section-title"><i class="fas fa-search"></i> Поиск объявлений</h2>
+          <div class="results-count">Найдено: <span id="results-count">0</span></div>
+        </div>
+        
+        <div class="search-filters">
+          <div class="form-group">
+            <label for="search-query">Поиск</label>
+            <input id="search-query" type="text" placeholder="Смартфон, ноутбук, услуга..." />
+          </div>
+          <div class="form-group">
+            <label for="search-category">Категория</label>
+            <input id="search-category" type="text" placeholder="Любая категория" />
+          </div>
+          <div class="form-group">
+            <label for="search-min">Цена от (₽)</label>
+            <input id="search-min" type="number" step="0.01" placeholder="Минимум" />
+          </div>
+          <div class="form-group">
+            <label for="search-max">Цена до (₽)</label>
+            <input id="search-max" type="number" step="0.01" placeholder="Максимум" />
+          </div>
+        </div>
+        
+        <div class="search-btn-wrapper">
+          <button id="btn-search" class="btn">
+            <i class="fas fa-search"></i> Найти объявления
+          </button>
+        </div>
+
+        <div id="ads-container" class="ads-grid"></div>
+        
+        <div class="raw-data">
+          <summary>Сырые данные ответа (JSON)</summary>
+          <pre id="search-results">Здесь будут отображены данные в формате JSON после выполнения поиска</pre>
+        </div>
       </section>
-    </div>
+    </main>
 
-    <section>
-      <h2>Создать объявление</h2>
-      <label>Заголовок <input id="ad-title" type="text" /></label>
-      <label>Описание <textarea id="ad-description" rows="3"></textarea></label>
-      <label>Цена <input id="ad-price" type="number" step="0.01" /></label>
-      <label>Категория <input id="ad-category" type="text" value="electronics" /></label>
-      <label>Фото <input id="ad-images" type="file" multiple /></label>
-      <button id="btn-create-ad">Создать объявление</button>
-    </section>
-
-    <section>
-      <h2>Поиск объявлений</h2>
-      <label>Поиск <input id="search-query" type="text" placeholder="Смартфон" /></label>
-      <label>Категория <input id="search-category" type="text" /></label>
-      <label>Цена от <input id="search-min" type="number" step="0.01" /></label>
-      <label>Цена до <input id="search-max" type="number" step="0.01" /></label>
-      <button id="btn-search">Искать</button>
-      <h3>Результаты</h3>
-      <div id="ads-container" class="ads-grid"></div>
-      <details>
-        <summary>Сырые данные (JSON)</summary>
-        <pre id="search-results"></pre>
-      </details>
-    </section>
+    <footer>
+      <p>Moonshine Marketplace © 2023. Все права защищены.</p>
+      <p>Платформа для покупки и продажи товаров и услуг</p>
+    </footer>
   </div>
+
+  <div id="notification" class="notification"></div>
 
   <script>
     const apiBase = '/api';
+    let currentTheme = localStorage.getItem('theme') || 'light';
 
+    // Инициализация темы
+    function initTheme() {
+      if (currentTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        document.getElementById('theme-text').textContent = 'Светлая тема';
+      } else {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        document.getElementById('theme-text').textContent = 'Темная тема';
+      }
+    }
+
+    // Переключение темы
+    function toggleTheme() {
+      // Добавляем класс для плавного перехода
+      document.body.classList.add('theme-transition');
+      
+      if (currentTheme === 'light') {
+        currentTheme = 'dark';
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        document.getElementById('theme-text').textContent = 'Светлая тема';
+        showNotification('Темная тема включена', 'info');
+      } else {
+        currentTheme = 'light';
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        document.getElementById('theme-text').textContent = 'Темная тема';
+        showNotification('Светлая тема включена', 'info');
+      }
+      
+      localStorage.setItem('theme', currentTheme);
+      
+      // Убираем класс перехода после анимации
+      setTimeout(() => {
+        document.body.classList.remove('theme-transition');
+      }, 300);
+    }
+
+    // Уведомления
+    function showNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 4000);
+    }
+
+    // Работа с токеном
     function setToken(token) {
       if (token) {
         localStorage.setItem('jwt', token);
-        document.getElementById('token-view').textContent = token;
+        document.getElementById('token-text').textContent = token.substring(0, 20) + '...';
+        document.getElementById('auth-status').textContent = 'Авторизован';
+        document.getElementById('auth-status').style.color = 'var(--success)';
+        showNotification('Авторизация успешна', 'success');
       }
     }
 
@@ -85,6 +833,14 @@
       return localStorage.getItem('jwt') || '';
     }
 
+    function clearToken() {
+      localStorage.removeItem('jwt');
+      document.getElementById('token-text').textContent = '(нет токена)';
+      document.getElementById('auth-status').textContent = 'Не авторизован';
+      document.getElementById('auth-status').style.color = 'var(--gray)';
+    }
+
+    // Преобразование файла в base64
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -102,144 +858,314 @@
       });
     }
 
+    // Отображение выбранных файлов
+    function updateFileList() {
+      const files = document.getElementById('ad-images').files;
+      const fileList = document.getElementById('file-list');
+      
+      if (files.length === 0) {
+        fileList.innerHTML = 'Файлы не выбраны';
+        return;
+      }
+      
+      let fileNames = [];
+      for (let i = 0; i < Math.min(files.length, 3); i++) {
+        fileNames.push(files[i].name);
+      }
+      
+      let fileText = `Выбрано файлов: ${files.length}`;
+      if (files.length > 3) {
+        fileText += ` (${fileNames.join(', ')} и еще ${files.length - 3})`;
+      } else {
+        fileText += ` (${fileNames.join(', ')})`;
+      }
+      
+      fileList.innerHTML = `<i class="fas fa-paperclip"></i> ${fileText}`;
+    }
+
+    // Регистрация
     document.getElementById('btn-register').onclick = async () => {
       const email = document.getElementById('reg-email').value;
       const password = document.getElementById('reg-password').value;
       const name = document.getElementById('reg-name').value;
+      
+      if (!email || !password || !name) {
+        showNotification('Заполните все поля для регистрации', 'error');
+        return;
+      }
+      
       try {
         const res = await fetch(apiBase + '/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name }),
         });
+        
         const data = await res.json().catch(() => ({}));
+        
         if (!res.ok) {
-          alert('Ошибка регистрации: ' + (data.error || res.status));
+          showNotification('Ошибка регистрации: ' + (data.error || res.status), 'error');
           return;
         }
+        
         setToken(data.token);
-        alert('Регистрация успешна');
+        showNotification('Регистрация прошла успешно!', 'success');
+        
+        // Очистка полей формы
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-name').value = '';
+        
       } catch (e) {
-        alert('Ошибка сети при регистрации');
+        showNotification('Ошибка сети при регистрации', 'error');
       }
     };
 
+    // Логин
     document.getElementById('btn-login').onclick = async () => {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
+      
+      if (!email || !password) {
+        showNotification('Введите email и пароль', 'error');
+        return;
+      }
+      
       try {
         const res = await fetch(apiBase + '/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         });
+        
         const data = await res.json().catch(() => ({}));
+        
         if (!res.ok) {
-          alert('Ошибка логина: ' + (data.error || res.status));
+          showNotification('Ошибка входа: ' + (data.error || res.status), 'error');
           return;
         }
+        
         setToken(data.token);
-        alert('Логин успешен');
+        
+        // Очистка полей формы
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        
       } catch (e) {
-        alert('Ошибка сети при логине');
+        showNotification('Ошибка сети при входе в систему', 'error');
       }
     };
 
+    // Создание объявления
     document.getElementById('btn-create-ad').onclick = async () => {
       const token = getToken();
       if (!token) {
-        alert('Сначала залогиньтесь');
+        showNotification('Сначала войдите в систему', 'error');
         return;
       }
+      
       const title = document.getElementById('ad-title').value;
       const description = document.getElementById('ad-description').value;
       const price = parseFloat(document.getElementById('ad-price').value || '0');
       const category = document.getElementById('ad-category').value || 'general';
       const files = document.getElementById('ad-images').files;
-
+      
+      if (!title || !description || price <= 0) {
+        showNotification('Заполните обязательные поля: заголовок, описание и цена', 'error');
+        return;
+      }
+      
+      // Показываем индикатор загрузки
+      const originalBtnText = document.getElementById('btn-create-ad').innerHTML;
+      document.getElementById('btn-create-ad').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Публикация...';
+      document.getElementById('btn-create-ad').disabled = true;
+      
       const images = [];
       for (const file of files) {
         const b64 = await fileToBase64(file);
         images.push(b64);
       }
-
-      const res = await fetch(apiBase + '/ads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, title, description, price, category, images }),
-      });
-      const data = await res.json();
-      alert('Объявление создано');
+      
+      try {
+        const res = await fetch(apiBase + '/ads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, title, description, price, category, images }),
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          showNotification('Ошибка создания объявления: ' + (data.error || res.status), 'error');
+          return;
+        }
+        
+        showNotification('Объявление успешно создано!', 'success');
+        
+        // Очистка полей формы
+        document.getElementById('ad-title').value = '';
+        document.getElementById('ad-description').value = '';
+        document.getElementById('ad-price').value = '';
+        document.getElementById('ad-images').value = '';
+        document.getElementById('file-list').innerHTML = 'Файлы не выбраны';
+        
+      } catch (e) {
+        showNotification('Ошибка при создании объявления', 'error');
+      } finally {
+        // Восстанавливаем кнопку
+        document.getElementById('btn-create-ad').innerHTML = originalBtnText;
+        document.getElementById('btn-create-ad').disabled = false;
+      }
     };
 
+    // Поиск объявлений
     document.getElementById('btn-search').onclick = async () => {
       const params = new URLSearchParams();
       const q = document.getElementById('search-query').value;
       const category = document.getElementById('search-category').value;
       const min = document.getElementById('search-min').value;
       const max = document.getElementById('search-max').value;
+      
       if (q) params.set('query', q);
       if (category) params.set('category', category);
       if (min) params.set('min_price', min);
       if (max) params.set('max_price', max);
-
-      const res = await fetch(apiBase + '/ads?' + params.toString());
-      const data = await res.json();
-
+      
+      // Показываем индикатор загрузки
+      const originalBtnText = document.getElementById('btn-search').innerHTML;
+      document.getElementById('btn-search').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
+      document.getElementById('btn-search').disabled = true;
+      
+      // Показываем загрузку в контейнере
       const container = document.getElementById('ads-container');
-      container.innerHTML = '';
-
-      const ads = data.ads || data.Ads || [];
-
-      if (Array.isArray(ads)) {
-        for (const ad of ads) {
-          const card = document.createElement('article');
-          card.className = 'ad-card';
-
-          const title = document.createElement('h4');
-          title.textContent = (ad.title || ad.Title || '') + (ad.id || ad.Id ? ' (#' + (ad.id || ad.Id) + ')' : '');
-          card.appendChild(title);
-
-          const priceElem = document.createElement('div');
-          priceElem.className = 'price';
-          const priceValue = ad.price ?? ad.Price ?? 0;
-          priceElem.textContent = priceValue + ' ₽';
-          card.appendChild(priceElem);
-
-          if (ad.category || ad.category_id || ad.CategoryId) {
-            const cat = document.createElement('div');
-            cat.style.fontSize = '0.85rem';
-            cat.style.color = '#6b7280';
-            cat.textContent = 'Категория: ' + (ad.category || ad.category_id || ad.CategoryId);
-            card.appendChild(cat);
-          }
-
-          if (ad.description || ad.Description) {
-            const desc = document.createElement('p');
-            desc.textContent = ad.description || ad.Description;
-            card.appendChild(desc);
-          }
-
-          const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
-          if (Array.isArray(imgUrls) && imgUrls.length > 0) {
-            for (const url of imgUrls) {
-              const img = document.createElement('img');
-              img.src = url;
-              img.alt = ad.title || ad.Title || '';
-              card.appendChild(img);
+      container.innerHTML = `
+        <div class="image-loading" style="grid-column: 1/-1; height: 100px;"></div>
+      `;
+      
+      try {
+        const res = await fetch(apiBase + '/ads?' + params.toString());
+        const data = await res.json();
+        
+        container.innerHTML = '';
+        
+        const ads = data.ads || data.Ads || [];
+        document.getElementById('results-count').textContent = ads.length;
+        
+        if (Array.isArray(ads)) {
+          if (ads.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>Объявления не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
+              </div>
+            `;
+          } else {
+            for (const ad of ads) {
+              const card = document.createElement('article');
+              card.className = 'ad-card';
+              
+              const title = ad.title || ad.Title || 'Без названия';
+              const id = ad.id || ad.Id || '?';
+              const priceValue = ad.price ?? ad.Price ?? 0;
+              const description = ad.description || ad.Description || 'Нет описания';
+              const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+              const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+              
+              let imageHTML = '';
+              if (Array.isArray(imgUrls) && imgUrls.length > 0) {
+                imageHTML = `<img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">`;
+              } else {
+                imageHTML = `
+                  <div class="no-image">
+                    <i class="fas fa-image"></i>
+                  </div>
+                `;
+              }
+              
+              card.innerHTML = `
+                ${imageHTML}
+                <div class="ad-content">
+                  <div class="ad-title">${title}</div>
+                  <div class="ad-price">${priceValue} ₽</div>
+                  <div class="ad-category">${categoryName}</div>
+                  <div class="ad-description">${description}</div>
+                  <div class="ad-id"><i class="fas fa-hashtag"></i> ID: ${id}</div>
+                </div>
+              `;
+              
+              container.appendChild(card);
             }
           }
-
-          container.appendChild(card);
         }
+        
+        document.getElementById('search-results').textContent = JSON.stringify(data, null, 2);
+        
+        if (ads.length > 0) {
+          showNotification(`Найдено ${ads.length} объявлений`, 'success');
+        }
+        
+      } catch (e) {
+        showNotification('Ошибка при поиске объявлений', 'error');
+        console.error(e);
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Ошибка загрузки</h3>
+            <p>Попробуйте еще раз</p>
+          </div>
+        `;
+      } finally {
+        // Восстанавливаем кнопку
+        document.getElementById('btn-search').innerHTML = originalBtnText;
+        document.getElementById('btn-search').disabled = false;
       }
-
-      document.getElementById('search-results').textContent = JSON.stringify(data, null, 2);
     };
 
+    // Инициализация при загрузке страницы
     (function init() {
+      // Инициализация темы
+      initTheme();
+      
+      // Обработчик переключения темы
+      document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+      
+      // Инициализация токена
       const t = getToken();
-      if (t) document.getElementById('token-view').textContent = t;
+      if (t) {
+        document.getElementById('token-text').textContent = t.substring(0, 20) + '...';
+        document.getElementById('auth-status').textContent = 'Авторизован';
+        document.getElementById('auth-status').style.color = 'var(--success)';
+      }
+      
+      // Обработчик выбора файлов
+      document.getElementById('ad-images').addEventListener('change', updateFileList);
+      
+      // Добавляем обработчики для клавиши Enter в формах
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            // Если поле в форме логина - вызываем логин
+            if (input.id === 'login-email' || input.id === 'login-password') {
+              document.getElementById('btn-login').click();
+            }
+            // Если поле в форме регистрации - вызываем регистрацию
+            else if (input.id === 'reg-email' || input.id === 'reg-password' || input.id === 'reg-name') {
+              document.getElementById('btn-register').click();
+            }
+            // Если поле в форме поиска - вызываем поиск
+            else if (input.id.includes('search')) {
+              document.getElementById('btn-search').click();
+            }
+          }
+        });
+      });
+      
+      // Показываем уведомление о загрузке
+      setTimeout(() => {
+        showNotification('Добро пожаловать в Moonshine Marketplace!', 'info');
+      }, 500);
     })();
   </script>
 </body>
