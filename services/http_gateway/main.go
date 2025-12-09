@@ -270,8 +270,15 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
-		_ = upResp // загрузка в MinIO состоялась, для отображения используем data:-URL
-		mediaIDs = append(mediaIDs, "data:image/jpeg;base64,"+imgB64)
+
+		// Используем URL, который вернул MediaService; если по какой-то причине
+		// он пустой, сохраняем data:-URL как запасной вариант, чтобы картинки
+		// продолжали отображаться.
+		url := upResp.Url
+		if url == "" {
+			url = "data:image/jpeg;base64," + imgB64
+		}
+		mediaIDs = append(mediaIDs, url)
 	}
 
 	adConn, err := grpc.DialContext(ctx, g.adSvcAddr, grpc.WithInsecure())
