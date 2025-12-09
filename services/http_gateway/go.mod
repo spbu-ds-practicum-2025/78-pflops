@@ -5,6 +5,7 @@ go 1.25.1
 require (
 	78-pflops/services/ad_service v0.0.0
 	78-pflops/services/user_service v0.0.0
+	github.com/golang/protobuf v1.5.4
 	google.golang.org/grpc v1.76.0
 )
 

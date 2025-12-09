@@ -149,10 +149,12 @@ services:
     depends_on:
       - user_service
       - ad_service
+      - media_service
     environment:
       HTTP_GATEWAY_PORT: "8081"
       USER_SERVICE_ADDR: user_service_app:50051
       AD_SERVICE_ADDR: ad_service_app:50052
+      MEDIA_SERVICE_ADDR: media_service_app:50053
     restart: unless-stopped
 
   # API Gateway (Nginx reverse proxy + static frontend)

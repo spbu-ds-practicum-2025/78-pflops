@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
 	grpc "google.golang.org/grpc"
 
 	adpb "78-pflops/services/ad_service/pb/ad_service/pb"
+	mediapb "78-pflops/services/http_gateway/mediapb"
 	userpb "78-pflops/services/user_service/pb/user_service/pb"
 )
 
@@ -19,6 +22,7 @@ type gateway struct {
 	userSvcAddr  string
 	adSvcAddr    string
 	userHTTPBase string
+	mediaSvcAddr string
 }
 
 type registerRequest struct {
@@ -53,8 +57,9 @@ func main() {
 	adSvcAddr := getenv("AD_SERVICE_ADDR", "ad_service_app:50052")
 	port := getenv("HTTP_GATEWAY_PORT", "8081")
 	userHTTPBase := getenv("USER_HTTP_BASE", "http://user_service_app:8081")
+	mediaSvcAddr := getenv("MEDIA_SERVICE_ADDR", "media_service_app:50053")
 
-	g := &gateway{userSvcAddr: userSvcAddr, adSvcAddr: adSvcAddr, userHTTPBase: userHTTPBase}
+	g := &gateway{userSvcAddr: userSvcAddr, adSvcAddr: adSvcAddr, userHTTPBase: userHTTPBase, mediaSvcAddr: mediaSvcAddr}
 
 	http.HandleFunc("/api/auth/register", g.handleRegister)
 	http.HandleFunc("/api/auth/login", g.handleLogin)
@@ -232,6 +237,43 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Загружаем изображения в MediaService и получаем media_ids/urls
+	mediaConn, err := grpc.DialContext(ctx, g.mediaSvcAddr, grpc.WithInsecure())
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
+	defer mediaConn.Close()
+
+	mediaClient := mediapb.NewMediaServiceClient(mediaConn)
+	mediaIDs := make([]string, 0, len(req.Images))
+	for idx, imgB64 := range req.Images {
+		if imgB64 == "" {
+			continue
+		}
+		// На фронте мы отправляем только base64 без префикса data:
+		data, err := base64.StdEncoding.DecodeString(imgB64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		fileName := filepath.Base("image")
+		_, _ = idx, fileName
+		upResp, err := mediaClient.UploadMedia(ctx, &mediapb.UploadMediaRequest{
+			UserId:    me.UserID,
+			FileBytes: data,
+			MimeType:  "image/jpeg",
+			FileName:  "image.jpg",
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		_ = upResp // загрузка в MinIO состоялась, для отображения используем data:-URL
+		mediaIDs = append(mediaIDs, "data:image/jpeg;base64,"+imgB64)
+	}
+
 	adConn, err := grpc.DialContext(ctx, g.adSvcAddr, grpc.WithInsecure())
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
@@ -240,12 +282,13 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 	defer adConn.Close()
 
 	adClient := adpb.NewAdServiceClient(adConn)
-	// Пока создаём объявление без картинок через CreateAd
-	createResp, err := adClient.CreateAd(ctx, &adpb.CreateAdRequest{
+	// Создаём объявление с привязанными изображениями
+	createResp, err := adClient.CreateAdWithImages(ctx, &adpb.CreateAdWithImagesRequest{
 		UserId:      me.UserID,
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       int64(req.Price),
+		MediaIds:    mediaIDs,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
