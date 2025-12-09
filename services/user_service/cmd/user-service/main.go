@@ -96,10 +96,11 @@ func (h *httpServer) loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpServer) meHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodGet && r.Method != http.MethodPut && r.Method != http.MethodPatch {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -119,17 +120,51 @@ func (h *httpServer) meHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid token"})
 		return
 	}
-	user, err := h.svc.GetProfile(ctx, userID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
-		return
+
+	switch r.Method {
+	case http.MethodGet:
+		user, err := h.svc.GetProfile(ctx, userID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"user_id": user.ID,
+			"name":    user.Name,
+			"email":   user.Email,
+		})
+	case http.MethodPut, http.MethodPatch:
+		var req struct {
+			Name string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON"})
+			return
+		}
+		if strings.TrimSpace(req.Name) == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "name is required"})
+			return
+		}
+		if err := h.svc.UpdateProfile(ctx, userID, req.Name); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		user, err := h.svc.GetProfile(ctx, userID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"user_id": user.ID,
+			"name":    user.Name,
+			"email":   user.Email,
+		})
 	}
-	_ = json.NewEncoder(w).Encode(map[string]any{
-		"user_id": user.ID,
-		"name":    user.Name,
-		"email":   user.Email,
-	})
 }
 
 func (s *userServiceServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {

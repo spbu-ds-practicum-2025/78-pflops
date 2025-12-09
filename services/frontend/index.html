@@ -762,6 +762,9 @@
           <div class="token-display" id="token-view" title="Текущий пользователь">
             <i class="fas fa-user"></i> <span id="user-text">(гость)</span>
           </div>
+          <button id="btn-profile" class="btn btn-secondary" style="width:auto;padding:0.4rem 0.8rem;font-size:0.8rem;">
+            <i class="fas fa-id-card"></i>
+          </button>
           <button id="btn-logout" class="btn btn-secondary" style="width:auto;padding:0.4rem 0.8rem;font-size:0.8rem;">
             <i class="fas fa-sign-out-alt"></i>
           </button>
@@ -898,6 +901,17 @@
         <i class="fas fa-times"></i>
       </button>
       <div id="ad-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно профиля пользователя с его объявлениями -->
+  <div id="profile-modal" class="ad-modal hidden">
+    <div class="ad-modal-overlay"></div>
+    <div class="ad-modal-dialog">
+      <button id="profile-modal-close" class="ad-modal-close" aria-label="Закрыть профиль">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="profile-modal-content"></div>
     </div>
   </div>
 
@@ -1161,6 +1175,168 @@
       document.body.style.overflow = '';
     }
 
+    // Загрузка профиля пользователя и его объявлений
+    async function openProfile() {
+      const token = getToken();
+      if (!token) {
+        showNotification('Сначала войдите в систему', 'error');
+        return;
+      }
+
+      try {
+        // Получаем данные пользователя
+        const meRes = await fetch(apiBase + '/users/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!meRes.ok) {
+          showNotification('Не удалось загрузить профиль', 'error');
+          return;
+        }
+        const me = await meRes.json();
+        const userId = me.user_id || me.UserId || me.id || me.Id || '';
+        const userName = me.name || me.Name || me.email || me.Email || '(без имени)';
+
+        // Загружаем все объявления и фильтруем по author_id
+        const adsRes = await fetch(apiBase + '/ads');
+        if (!adsRes.ok) {
+          showNotification('Не удалось загрузить объявления', 'error');
+          return;
+        }
+        const adsData = await adsRes.json();
+        const allAds = adsData.ads || adsData.Ads || [];
+        const myAds = allAds.filter(ad => {
+          const author = ad.author_id || ad.authorId || ad.AuthorId || '';
+          return userId && author === userId;
+        });
+
+        const content = document.getElementById('profile-modal-content');
+        if (!content) return;
+
+        let cardsHTML = '';
+        if (myAds.length === 0) {
+          cardsHTML = `
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <h3>У вас пока нет объявлений</h3>
+              <p>Создайте первое объявление в разделе "Создать объявление"</p>
+            </div>
+          `;
+        } else {
+          cardsHTML = myAds.map(ad => {
+            const title = ad.title || ad.Title || 'Без названия';
+            const id = ad.id || ad.Id || '?';
+            const priceValue = ad.price ?? ad.Price ?? 0;
+            const description = ad.description || ad.Description || 'Нет описания';
+            const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+            const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+
+            let imageHTML = '';
+            if (Array.isArray(imgUrls) && imgUrls.length > 0) {
+              imageHTML = `<img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">`;
+            } else {
+              imageHTML = `
+                <div class="no-image">
+                  <i class="fas fa-image"></i>
+                </div>
+              `;
+            }
+
+            return `
+              <article class="ad-card">
+                ${imageHTML}
+                <div class="ad-content">
+                  <div class="ad-title">${title}</div>
+                  <div class="ad-price">${priceValue} ₽</div>
+                  <div class="ad-category">${categoryName}</div>
+                  <div class="ad-description">${description}</div>
+                  <div class="ad-id"><i class="fas fa-hashtag"></i> ID: ${id}</div>
+                </div>
+              </article>
+            `;
+          }).join('');
+        }
+
+        content.innerHTML = `
+          <h2 class="ad-modal-title">Профиль</h2>
+          <div class="ad-modal-meta">
+            <span><i class="fas fa-user"></i> ${userName}</span>
+            ${me.email || me.Email ? `<span><i class=\"fas fa-envelope\"></i> ${me.email || me.Email}</span>` : ''}
+          </div>
+          <div class="form-group" style="margin: 1rem 0;">
+            <label for="profile-name">Имя</label>
+            <input id="profile-name" type="text" value="${userName}" />
+          </div>
+          <button id="btn-save-profile" class="btn btn-secondary" style="width:auto;margin-bottom:1rem;">
+            <i class="fas fa-save"></i> Сохранить профиль
+          </button>
+          <h3 class="section-title" style="margin-top:1rem; font-size:1.2rem;">
+            <i class="fas fa-bullhorn"></i> Мои объявления (${myAds.length})
+          </h3>
+          <div class="ads-grid" style="margin-top:1rem;">
+            ${cardsHTML}
+          </div>
+        `;
+
+        // Обработчик сохранения профиля
+        const btnSaveProfile = document.getElementById('btn-save-profile');
+        const nameInput = document.getElementById('profile-name');
+        if (btnSaveProfile && nameInput) {
+          btnSaveProfile.addEventListener('click', async () => {
+            const newName = nameInput.value.trim();
+            if (!newName) {
+              showNotification('Имя не может быть пустым', 'error');
+              return;
+            }
+
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+
+            try {
+              const res = await fetch(apiBase + '/users/me', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ name: newName }),
+              });
+
+              const data = await res.json().catch(() => ({}));
+
+              if (!res.ok) {
+                showNotification('Ошибка обновления профиля: ' + (data.error || res.status), 'error');
+                return;
+              }
+
+              showNotification('Профиль обновлён', 'success');
+              updateUserInfo();
+            } catch (e) {
+              showNotification('Ошибка сети при обновлении профиля', 'error');
+            }
+          });
+        }
+
+        const modal = document.getElementById('profile-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+      } catch (e) {
+        console.error(e);
+        showNotification('Ошибка загрузки профиля', 'error');
+      }
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
     // Логин
     document.getElementById('btn-login').onclick = async () => {
       const email = document.getElementById('login-email').value;
@@ -1401,6 +1577,12 @@
         showNotification('Вы вышли из системы', 'info');
       });
 
+      // Кнопка профиля
+      const btnProfile = document.getElementById('btn-profile');
+      if (btnProfile) {
+        btnProfile.addEventListener('click', openProfile);
+      }
+
       // Закрытие модального окна объявления
       const adModal = document.getElementById('ad-modal');
       const adModalClose = document.getElementById('ad-modal-close');
@@ -1409,6 +1591,18 @@
         adModal.addEventListener('click', (e) => {
           if (e.target === adModal || e.target.classList.contains('ad-modal-overlay')) {
             closeAdModal();
+          }
+        });
+      }
+
+      // Закрытие модального окна профиля
+      const profileModal = document.getElementById('profile-modal');
+      const profileModalClose = document.getElementById('profile-modal-close');
+      if (profileModal && profileModalClose) {
+        profileModalClose.addEventListener('click', closeProfileModal);
+        profileModal.addEventListener('click', (e) => {
+          if (e.target === profileModal || e.target.classList.contains('ad-modal-overlay')) {
+            closeProfileModal();
           }
         });
       }
