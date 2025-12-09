@@ -595,6 +595,134 @@
       opacity: 0.5;
     }
 
+    /* Галерея картинок в карточке */
+    .ad-image-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .image-count-badge {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .image-count-badge i {
+      font-size: 0.8rem;
+    }
+
+    /* Модальное окно для отдельного объявления */
+    .ad-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+    }
+
+    .ad-modal.hidden {
+      display: none;
+    }
+
+    .ad-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .ad-modal-dialog {
+      position: relative;
+      background: var(--light);
+      color: var(--dark);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      z-index: 1;
+    }
+
+    body.dark-mode .ad-modal-dialog {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .ad-modal-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+
+    .ad-modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-modal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .ad-modal-price {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+
+    .ad-modal-category {
+      background-color: rgba(124, 58, 237, 0.15);
+      color: var(--primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .ad-modal-id {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .ad-modal-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .ad-modal-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .ad-modal-description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
     /* Стили для скроллбара */
     ::-webkit-scrollbar {
       width: 8px;
@@ -631,9 +759,12 @@
         </button>
         <div class="user-status">
           <span>Статус: <strong id="auth-status">Не авторизован</strong></span>
-          <div class="token-display" id="token-view" title="Токен авторизации">
-            <i class="fas fa-key"></i> <span id="token-text">(нет токена)</span>
+          <div class="token-display" id="token-view" title="Текущий пользователь">
+            <i class="fas fa-user"></i> <span id="user-text">(гость)</span>
           </div>
+          <button id="btn-logout" class="btn btn-secondary" style="width:auto;padding:0.4rem 0.8rem;font-size:0.8rem;">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
         </div>
       </div>
     </header>
@@ -759,11 +890,25 @@
     </footer>
   </div>
 
+  <!-- Модальное окно для просмотра отдельного объявления и всех картинок -->
+  <div id="ad-modal" class="ad-modal hidden">
+    <div class="ad-modal-overlay"></div>
+    <div class="ad-modal-dialog">
+      <button id="ad-modal-close" class="ad-modal-close" aria-label="Закрыть">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="ad-modal-content"></div>
+    </div>
+  </div>
+
   <div id="notification" class="notification"></div>
 
   <script>
     const apiBase = '/api';
     let currentTheme = localStorage.getItem('theme') || 'light';
+    // Здесь будем хранить все выбранные файлы объявления, чтобы
+    // новые выборы не перетирали старые
+    let selectedFiles = [];
 
     // Инициализация темы
     function initTheme() {
@@ -818,26 +963,58 @@
       }, 4000);
     }
 
-    // Работа с токеном
-    function setToken(token) {
-      if (token) {
-        localStorage.setItem('jwt', token);
-        document.getElementById('token-text').textContent = token.substring(0, 20) + '...';
-        document.getElementById('auth-status').textContent = 'Авторизован';
-        document.getElementById('auth-status').style.color = 'var(--success)';
-        showNotification('Авторизация успешна', 'success');
-      }
-    }
-
+    // Работа с токеном и текущим пользователем
     function getToken() {
       return localStorage.getItem('jwt') || '';
     }
 
+    async function updateUserInfo() {
+      const token = getToken();
+      const userTextEl = document.getElementById('user-text');
+      const statusEl = document.getElementById('auth-status');
+
+      if (!token) {
+        userTextEl.textContent = '(гость)';
+        statusEl.textContent = 'Не авторизован';
+        statusEl.style.color = 'var(--gray)';
+        return;
+      }
+
+      try {
+        const res = await fetch(apiBase + '/users/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!res.ok) {
+          throw new Error('failed');
+        }
+
+        const data = await res.json();
+        const name = data.name || data.Name || data.email || data.Email || 'пользователь';
+        userTextEl.textContent = name;
+        statusEl.textContent = 'Авторизован';
+        statusEl.style.color = 'var(--success)';
+      } catch (e) {
+        // Токен невалиден или сервер недоступен — очищаем
+        clearToken();
+      }
+    }
+
+    function setToken(token) {
+      if (token) {
+        localStorage.setItem('jwt', token);
+        showNotification('Авторизация успешна', 'success');
+        updateUserInfo();
+      }
+    }
+
     function clearToken() {
       localStorage.removeItem('jwt');
-      document.getElementById('token-text').textContent = '(нет токена)';
-      document.getElementById('auth-status').textContent = 'Не авторизован';
-      document.getElementById('auth-status').style.color = 'var(--gray)';
+      const userTextEl = document.getElementById('user-text');
+      const statusEl = document.getElementById('auth-status');
+      userTextEl.textContent = '(гость)';
+      statusEl.textContent = 'Не авторизован';
+      statusEl.style.color = 'var(--gray)';
     }
 
     // Преобразование файла в base64
@@ -860,22 +1037,35 @@
 
     // Отображение выбранных файлов
     function updateFileList() {
-      const files = document.getElementById('ad-images').files;
+      const input = document.getElementById('ad-images');
+      const files = Array.from(input.files || []);
       const fileList = document.getElementById('file-list');
-      
-      if (files.length === 0) {
+
+      // Добавляем новые файлы к уже выбранным (если пользователь
+      // несколько раз открывает диалог выбора файлов)
+      if (files.length > 0) {
+        selectedFiles = selectedFiles.concat(files);
+        // Очищаем input, чтобы повторный выбор тех же файлов снова вызывал change
+        input.value = '';
+      }
+
+      if (selectedFiles.length === 0) {
         fileList.innerHTML = 'Файлы не выбраны';
         return;
       }
       
-      let fileNames = [];
-      for (let i = 0; i < Math.min(files.length, 3); i++) {
-        fileNames.push(files[i].name);
+      if (files.length === 0) {
+        // уже обработали случай пустого списка выше
       }
       
-      let fileText = `Выбрано файлов: ${files.length}`;
-      if (files.length > 3) {
-        fileText += ` (${fileNames.join(', ')} и еще ${files.length - 3})`;
+      let fileNames = [];
+      for (let i = 0; i < Math.min(selectedFiles.length, 3); i++) {
+        fileNames.push(selectedFiles[i].name);
+      }
+      
+      let fileText = `Выбрано файлов: ${selectedFiles.length}`;
+      if (selectedFiles.length > 3) {
+        fileText += ` (${fileNames.join(', ')} и еще ${selectedFiles.length - 3})`;
       } else {
         fileText += ` (${fileNames.join(', ')})`;
       }
@@ -920,6 +1110,56 @@
         showNotification('Ошибка сети при регистрации', 'error');
       }
     };
+
+    // Открытие модального окна с подробностями объявления и всеми картинками
+    function openAdModal(ad, imgUrls) {
+      const modal = document.getElementById('ad-modal');
+      const content = document.getElementById('ad-modal-content');
+      if (!modal || !content) return;
+
+      const title = ad.title || ad.Title || 'Без названия';
+      const id = ad.id || ad.Id || '?';
+      const priceValue = ad.price ?? ad.Price ?? 0;
+      const description = ad.description || ad.Description || 'Нет описания';
+      const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+      const urls = Array.isArray(imgUrls) ? imgUrls : [];
+
+      let imagesHTML = '';
+      if (urls.length > 0) {
+        imagesHTML = urls.map(u => `
+          <img src="${u}" alt="${title}" class="ad-modal-image" loading="lazy">
+        `).join('');
+      } else {
+        imagesHTML = `
+          <div class="no-image" style="margin-bottom: 1rem;">
+            <i class="fas fa-image"></i>
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <h2 class="ad-modal-title">${title}</h2>
+        <div class="ad-modal-meta">
+          <span class="ad-modal-price">${priceValue} ₽</span>
+          <span class="ad-modal-category">${categoryName}</span>
+          <span class="ad-modal-id"><i class="fas fa-hashtag"></i> ID: ${id}</span>
+        </div>
+        <div class="ad-modal-images">
+          ${imagesHTML}
+        </div>
+        <p class="ad-modal-description">${description}</p>
+      `;
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAdModal() {
+      const modal = document.getElementById('ad-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
 
     // Логин
     document.getElementById('btn-login').onclick = async () => {
@@ -968,7 +1208,7 @@
       const description = document.getElementById('ad-description').value;
       const price = parseFloat(document.getElementById('ad-price').value || '0');
       const category = document.getElementById('ad-category').value || 'general';
-      const files = document.getElementById('ad-images').files;
+      const files = selectedFiles;
       
       if (!title || !description || price <= 0) {
         showNotification('Заполните обязательные поля: заголовок, описание и цена', 'error');
@@ -1007,6 +1247,7 @@
         document.getElementById('ad-description').value = '';
         document.getElementById('ad-price').value = '';
         document.getElementById('ad-images').value = '';
+        selectedFiles = [];
         document.getElementById('file-list').innerHTML = 'Файлы не выбраны';
         
       } catch (e) {
@@ -1074,7 +1315,20 @@
               
               let imageHTML = '';
               if (Array.isArray(imgUrls) && imgUrls.length > 0) {
-                imageHTML = `<img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">`;
+        let overlay = '';
+        if (imgUrls.length > 1) {
+          overlay = `
+            <div class="image-count-badge">
+              <i class="fas fa-images"></i> ${imgUrls.length}
+            </div>
+          `;
+        }
+        imageHTML = `
+          <div class="ad-image-wrapper">
+            <img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">
+            ${overlay}
+          </div>
+        `;
               } else {
                 imageHTML = `
                   <div class="no-image">
@@ -1093,7 +1347,12 @@
                   <div class="ad-id"><i class="fas fa-hashtag"></i> ID: ${id}</div>
                 </div>
               `;
-              
+
+				// Клик по карточке открывает модальное окно с подробной информацией и всеми картинками
+				card.addEventListener('click', () => {
+				  openAdModal(ad, imgUrls);
+				});
+
               container.appendChild(card);
             }
           }
@@ -1131,15 +1390,28 @@
       document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
       
       // Инициализация токена
-      const t = getToken();
-      if (t) {
-        document.getElementById('token-text').textContent = t.substring(0, 20) + '...';
-        document.getElementById('auth-status').textContent = 'Авторизован';
-        document.getElementById('auth-status').style.color = 'var(--success)';
-      }
+      updateUserInfo();
       
       // Обработчик выбора файлов
       document.getElementById('ad-images').addEventListener('change', updateFileList);
+
+      // Кнопка выхода
+      document.getElementById('btn-logout').addEventListener('click', () => {
+        clearToken();
+        showNotification('Вы вышли из системы', 'info');
+      });
+
+      // Закрытие модального окна объявления
+      const adModal = document.getElementById('ad-modal');
+      const adModalClose = document.getElementById('ad-modal-close');
+      if (adModal && adModalClose) {
+        adModalClose.addEventListener('click', closeAdModal);
+        adModal.addEventListener('click', (e) => {
+          if (e.target === adModal || e.target.classList.contains('ad-modal-overlay')) {
+            closeAdModal();
+          }
+        });
+      }
       
       // Добавляем обработчики для клавиши Enter в формах
       const inputs = document.querySelectorAll('input');
