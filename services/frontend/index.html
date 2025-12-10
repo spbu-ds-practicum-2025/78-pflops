@@ -723,6 +723,57 @@
       line-height: 1.6;
     }
 
+    /* Стартовый экран выбора режима (регистрация/вход/гость) */
+    .entry-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1300;
+    }
+
+    .entry-overlay.hidden {
+      display: none;
+    }
+
+    .entry-card {
+      background: var(--light);
+      color: var(--dark);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    body.dark-mode .entry-card {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .entry-card h2 {
+      margin-bottom: 0.75rem;
+      font-size: 1.6rem;
+    }
+
+    .entry-card p {
+      margin-bottom: 1.5rem;
+      color: var(--gray);
+    }
+
+    .entry-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .entry-actions .btn {
+      width: 100%;
+    }
+
     /* Стили для скроллбара */
     ::-webkit-scrollbar {
       width: 8px;
@@ -880,15 +931,15 @@
 
         <div id="ads-container" class="ads-grid"></div>
         
-        <div class="raw-data">
-          <summary>Сырые данные ответа (JSON)</summary>
+        <details class="raw-data">
+          <summary>JSON</summary>
           <pre id="search-results">Здесь будут отображены данные в формате JSON после выполнения поиска</pre>
-        </div>
+        </details>
       </section>
     </main>
 
     <footer>
-      <p>Moonshine Marketplace © 2023. Все права защищены.</p>
+      <p>Moonshine Marketplace © 2025. Made by 78-pflops.</p>
       <p>Платформа для покупки и продажи товаров и услуг</p>
     </footer>
   </div>
@@ -915,6 +966,25 @@
     </div>
   </div>
 
+  <!-- Стартовый экран: выбор режима (регистрация / вход / гость) -->
+  <div id="entry-overlay" class="entry-overlay hidden">
+    <div class="entry-card">
+      <h2>Добро пожаловать в Moonshine Marketplace</h2>
+      <p>Выберите, как вы хотите начать работу с платформой.</p>
+      <div class="entry-actions">
+        <button id="entry-register" class="btn btn-secondary">
+          <i class="fas fa-user-plus"></i> Зарегистрироваться
+        </button>
+        <button id="entry-login" class="btn btn-secondary">
+          <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
+        </button>
+        <button id="entry-guest" class="btn" style="background-color: var(--gray);">
+          <i class="fas fa-user-secret"></i> Войти как гость
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="notification" class="notification"></div>
 
   <script>
@@ -925,6 +995,78 @@
     let selectedFiles = [];
     // Для редактирования объявлений будем хранить выбранные новые картинки
     let editSelectedFiles = [];
+
+    // Применение текущего режима сессии (гость / пользователь / не выбран)
+    function applySessionMode() {
+      const mode = localStorage.getItem('sessionMode') || '';
+      const token = getToken();
+
+      const overlay = document.getElementById('entry-overlay');
+      const authSection = document.querySelector('.auth-section');
+      const createSection = document.querySelector('.create-ad-section');
+      const searchSection = document.querySelector('.search-section');
+      const btnProfile = document.getElementById('btn-profile');
+      const authCards = authSection ? authSection.querySelectorAll('.auth-card') : [];
+
+      // Если уже есть валидный токен — считаем, что пользователь авторизован
+      if (token) {
+        if (overlay) overlay.classList.add('hidden');
+        // После входа в систему блок с формами входа/регистрации скрываем
+        if (authSection) authSection.style.display = 'none';
+        if (createSection) createSection.style.display = '';
+        if (searchSection) searchSection.style.display = '';
+        if (btnProfile) btnProfile.style.display = 'inline-flex';
+        return;
+      }
+
+      // Режим ещё не выбран — показываем стартовый экран, скрываем функционал
+      if (!mode) {
+        if (overlay) overlay.classList.remove('hidden');
+        if (authSection) authSection.style.display = '';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = 'none';
+        if (btnProfile) btnProfile.style.display = 'none';
+        return;
+      }
+
+      // Режим гостя: только просмотр объявлений, без профиля и создания
+      if (mode === 'guest') {
+        if (overlay) overlay.classList.add('hidden');
+        if (authSection) authSection.style.display = 'none';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = '';
+        if (btnProfile) btnProfile.style.display = 'none';
+        return;
+      }
+
+      // Режим пользователя без токена: показываем формы входа/регистрации и поиск,
+      // но скрываем создание объявлений, просмотр объявлений и профиль до авторизации.
+      if (mode === 'user') {
+        if (overlay) overlay.classList.add('hidden');
+        if (authSection) authSection.style.display = '';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = 'none';
+        if (btnProfile) btnProfile.style.display = 'none';
+
+        // В зависимости от выбранного на стартовом экране варианта
+        // показываем только регистрацию или только логин.
+        const authView = localStorage.getItem('authView') || '';
+        if (authCards.length === 2) {
+          const regCard = authCards[0];
+          const loginCard = authCards[1];
+          if (authView === 'register') {
+            regCard.style.display = '';
+            loginCard.style.display = 'none';
+          } else if (authView === 'login') {
+            regCard.style.display = 'none';
+            loginCard.style.display = '';
+          } else {
+            regCard.style.display = '';
+            loginCard.style.display = '';
+          }
+        }
+      }
+    }
 
     // Инициализация темы
     function initTheme() {
@@ -1023,18 +1165,23 @@
     function setToken(token) {
       if (token) {
         localStorage.setItem('jwt', token);
+        localStorage.setItem('sessionMode', 'user');
         showNotification('Авторизация успешна', 'success');
         updateUserInfo();
+        applySessionMode();
       }
     }
 
     function clearToken() {
       localStorage.removeItem('jwt');
+      localStorage.removeItem('sessionMode');
+      localStorage.removeItem('authView');
       const userTextEl = document.getElementById('user-text');
       const statusEl = document.getElementById('auth-status');
       userTextEl.textContent = '(гость)';
       statusEl.textContent = 'Не авторизован';
       statusEl.style.color = 'var(--gray)';
+      applySessionMode();
     }
 
     // Преобразование файла в base64
@@ -1796,6 +1943,9 @@
       
       // Инициализация токена
       updateUserInfo();
+
+      // Применяем режим сессии (гость/пользователь/не выбран)
+      applySessionMode();
       
       // Обработчик выбора файлов
       document.getElementById('ad-images').addEventListener('change', updateFileList);
@@ -1805,6 +1955,48 @@
         clearToken();
         showNotification('Вы вышли из системы', 'info');
       });
+
+      // Стартовый экран: обработчики выбора режима
+      const entryRegister = document.getElementById('entry-register');
+      const entryLogin = document.getElementById('entry-login');
+      const entryGuest = document.getElementById('entry-guest');
+
+      if (entryRegister) {
+        entryRegister.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'user');
+          localStorage.setItem('authView', 'register');
+          applySessionMode();
+          const regEmail = document.getElementById('reg-email');
+          if (regEmail) {
+            regEmail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            regEmail.focus();
+          }
+        });
+      }
+
+      if (entryLogin) {
+        entryLogin.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'user');
+          localStorage.setItem('authView', 'login');
+          applySessionMode();
+          const loginEmail = document.getElementById('login-email');
+          if (loginEmail) {
+            loginEmail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            loginEmail.focus();
+          }
+        });
+      }
+
+      if (entryGuest) {
+        entryGuest.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'guest');
+          applySessionMode();
+          const searchInput = document.getElementById('search-query');
+          if (searchInput) {
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
 
       // Кнопка профиля
       const btnProfile = document.getElementById('btn-profile');
