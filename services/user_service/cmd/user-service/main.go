@@ -229,7 +229,7 @@ func main() {
 		grpcServer := grpc.NewServer()
 		proto.RegisterUserServiceServer(grpcServer, &userServiceServer{service: svc})
 		reflection.Register(grpcServer)
-		fmt.Println("✅ UserService gRPC running on port 50051")
+		fmt.Println("UserService gRPC running on port 50051")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
 		}
@@ -242,7 +242,7 @@ func main() {
 	mux.HandleFunc("/api/auth/login", httpSrv.loginHandler)
 	mux.HandleFunc("/api/users/me", httpSrv.meHandler)
 
-	fmt.Println("✅ UserService HTTP running on port 8081")
+	fmt.Println("UserService HTTP running on port 8081")
 	if err := http.ListenAndServe(":8081", mux); err != nil {
 		log.Fatalf("failed to serve HTTP: %v", err)
 	}

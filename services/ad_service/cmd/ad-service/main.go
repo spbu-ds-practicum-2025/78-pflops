@@ -225,7 +225,7 @@ func main() {
 
 	reflection.Register(grpcServer)
 
-	fmt.Println("🚀 AdService running on port 50052 (gRPC)")
+	fmt.Println("AdService running on port 50052 (gRPC)")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
