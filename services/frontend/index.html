@@ -723,6 +723,88 @@
       line-height: 1.6;
     }
 
+    /* Страница отдельного объявления */
+    .ad-detail-section {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .ad-detail-section {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ad-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .ad-detail-main {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .ad-detail-main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ad-detail-main-image-wrapper {
+      background: #000;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+    }
+
+    .ad-detail-main-image {
+      width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .ad-detail-thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .ad-detail-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .ad-detail-thumb.active {
+      border-color: var(--primary);
+    }
+
+    .ad-detail-meta-block {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      color: var(--gray);
+    }
+
+    .ad-detail-description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
     /* Стартовый экран выбора режима (регистрация/вход/гость) */
     .entry-overlay {
       position: fixed;
@@ -935,6 +1017,17 @@
           <summary>JSON</summary>
           <pre id="search-results">Здесь будут отображены данные в формате JSON после выполнения поиска</pre>
         </details>
+      </section>
+
+      <!-- Страница отдельного объявления -->
+      <section id="ad-detail-section" class="ad-detail-section" style="display:none;">
+        <div class="ad-detail-header">
+          <h2 class="section-title"><i class="fas fa-bullhorn"></i> Объявление</h2>
+          <button id="ad-detail-back" class="btn btn-secondary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;">
+            <i class="fas fa-arrow-left"></i> Назад к списку
+          </button>
+        </div>
+        <div id="ad-detail-content"></div>
       </section>
     </main>
 
@@ -1240,6 +1333,31 @@
       fileList.innerHTML = `<i class="fas fa-paperclip"></i> ${fileText}`;
     }
 
+    // Отображение выбранных файлов для редактирования объявления
+    function updateEditFileList() {
+      const input = document.getElementById('edit-ad-images');
+      const fileList = document.getElementById('edit-file-list');
+      if (!input || !fileList) return;
+
+      const files = Array.from(input.files || []);
+      editSelectedFiles = files;
+
+      if (files.length === 0) {
+        fileList.innerHTML = 'Файлы не выбраны';
+        return;
+      }
+
+      const names = files.slice(0, 3).map(f => f.name);
+      let text = `Выбрано файлов: ${files.length}`;
+      if (files.length > 3) {
+        text += ` (${names.join(', ')} и еще ${files.length - 3})`;
+      } else {
+        text += ` (${names.join(', ')})`;
+      }
+
+      fileList.innerHTML = `<i class="fas fa-paperclip"></i> ${text}`;
+    }
+
     // Регистрация
     document.getElementById('btn-register').onclick = async () => {
       const email = document.getElementById('reg-email').value;
@@ -1318,43 +1436,6 @@
               <i class="fas fa-trash"></i> Удалить
             </button>
           </div>
-          <div id="ad-edit-form" style="margin-top: 1rem; display: none;">
-            <div class="form-group">
-              <label for="edit-ad-title">Заголовок</label>
-              <input id="edit-ad-title" type="text" value="${title}" />
-            </div>
-            <div class="form-group">
-              <label for="edit-ad-price">Цена (₽)</label>
-              <input id="edit-ad-price" type="number" step="0.01" value="${priceValue}" />
-            </div>
-            <div class="form-group">
-              <label for="edit-ad-category">Категория</label>
-              <input id="edit-ad-category" type="text" value="${categoryName}" />
-            </div>
-            <div class="form-group">
-              <label for="edit-ad-description">Описание</label>
-              <textarea id="edit-ad-description" rows="3">${description}</textarea>
-            </div>
-            <div class="form-group">
-              <label for="edit-ad-images">Фотографии (заменят текущие, можно выбрать несколько)</label>
-              <div class="file-input-wrapper">
-                <input id="edit-ad-images" type="file" multiple accept="image/*" />
-                <div class="file-input-label">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <span>Выберите новые файлы (необязательно)</span>
-                </div>
-              </div>
-              <div id="edit-file-list" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray);"></div>
-            </div>
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-              <button id="btn-save-ad" class="btn btn-secondary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;">
-                <i class="fas fa-save"></i> Сохранить изменения
-              </button>
-              <button id="btn-cancel-edit" class="btn" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem; background-color: var(--gray);">
-                Отмена
-              </button>
-            </div>
-          </div>
         `;
       }
 
@@ -1375,116 +1456,15 @@
       modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
 
-      // Навешиваем обработчики только для владельца
+      // Навешиваем обработчики только для владельца (здесь только переход в режим редактирования на отдельной странице)
       if (isOwner) {
         const btnEdit = document.getElementById('btn-edit-ad');
         const btnDelete = document.getElementById('btn-delete-ad');
-        const editForm = document.getElementById('ad-edit-form');
-        const btnSave = document.getElementById('btn-save-ad');
-        const btnCancel = document.getElementById('btn-cancel-edit');
-        const editImagesInput = document.getElementById('edit-ad-images');
-        const editFileList = document.getElementById('edit-file-list');
 
-        // Сбрасываем выбранные при прошлых открытиях картинки
-        editSelectedFiles = [];
-        if (editFileList) {
-          editFileList.textContent = 'Файлы не выбраны';
-        }
-
-        if (btnEdit && editForm) {
+        if (btnEdit) {
           btnEdit.addEventListener('click', () => {
-            editForm.style.display = 'block';
-          });
-        }
-
-        if (btnCancel && editForm) {
-          btnCancel.addEventListener('click', () => {
-            editForm.style.display = 'none';
-          });
-        }
-
-        if (editImagesInput && editFileList) {
-          editImagesInput.addEventListener('change', () => {
-            const files = Array.from(editImagesInput.files || []);
-            editSelectedFiles = files;
-
-            if (files.length === 0) {
-              editFileList.textContent = 'Файлы не выбраны';
-              return;
-            }
-
-            const names = files.slice(0, 3).map(f => f.name);
-            let text = `Выбрано файлов: ${files.length}`;
-            if (files.length > 3) {
-              text += ` (${names.join(', ')} и еще ${files.length - 3})`;
-            } else {
-              text += ` (${names.join(', ')})`;
-            }
-            editFileList.innerHTML = `<i class="fas fa-paperclip"></i> ${text}`;
-          });
-        }
-
-        if (btnSave) {
-          btnSave.addEventListener('click', async () => {
-            const token = getToken();
-            if (!token) {
-              showNotification('Сначала войдите в систему', 'error');
-              return;
-            }
-
-            const titleInput = document.getElementById('edit-ad-title');
-            const priceInput = document.getElementById('edit-ad-price');
-            const categoryInput = document.getElementById('edit-ad-category');
-            const descInput = document.getElementById('edit-ad-description');
-
-            const newTitle = titleInput.value.trim();
-            const newDesc = descInput.value.trim();
-            const newPrice = parseFloat(priceInput.value || '0');
-            const newCategory = categoryInput.value.trim() || 'general';
-
-            // Готовим новые изображения, если выбраны
-            const images = [];
-            for (const file of editSelectedFiles) {
-              const b64 = await fileToBase64(file);
-              images.push(b64);
-            }
-
-            if (!newTitle && !newDesc && !(newPrice > 0) && images.length === 0) {
-              showNotification('Нечего сохранять: измените поля или выберите новые картинки', 'error');
-              return;
-            }
-
-            try {
-              const res = await fetch(apiBase + '/ads/' + id, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + token,
-                },
-                body: JSON.stringify({
-                  title: newTitle,
-                  description: newDesc,
-                  price: newPrice,
-                  category: newCategory,
-                  images,
-                }),
-              });
-
-              if (!res.ok) {
-                showNotification('Ошибка обновления объявления: ' + res.status, 'error');
-                return;
-              }
-
-              showNotification('Объявление обновлено', 'success');
-              // Перезагрузка списка объявлений, если он уже был загружен
-              const searchBtn = document.getElementById('btn-search');
-              if (searchBtn) {
-                searchBtn.click();
-              }
-              closeAdModal();
-            } catch (e) {
-              showNotification('Ошибка сети при обновлении объявления', 'error');
-            }
+            closeAdModal();
+            openAdPage(ad, urls);
           });
         }
 
@@ -1496,7 +1476,7 @@
               return;
             }
 
-            if (!confirm('Вы уверены, что хотите удалить объявление?')) {
+            if (!confirm('Удалить это объявление?')) {
               return;
             }
 
@@ -1514,12 +1494,13 @@
               }
 
               showNotification('Объявление удалено', 'success');
+              closeAdModal();
               const searchBtn = document.getElementById('btn-search');
               if (searchBtn) {
                 searchBtn.click();
               }
-              closeAdModal();
             } catch (e) {
+              console.error(e);
               showNotification('Ошибка сети при удалении объявления', 'error');
             }
           });
@@ -1532,6 +1513,303 @@
       if (!modal) return;
       modal.classList.add('hidden');
       document.body.style.overflow = '';
+    }
+
+    // Получение ID объявления из URL (hash или query)
+    function getAdIdFromURL() {
+      const hash = window.location.hash || '';
+      const hashMatch = hash.match(/^#ad-(.+)$/);
+      if (hashMatch && hashMatch[1]) {
+        return decodeURIComponent(hashMatch[1]);
+      }
+
+      const params = new URLSearchParams(window.location.search || '');
+      const fromQuery = params.get('ad');
+      if (fromQuery) {
+        return fromQuery;
+      }
+      return '';
+    }
+
+    // Загрузка объявления по ID и открытие отдельной страницы
+    async function openAdById(adId) {
+      if (!adId) return;
+      try {
+        const res = await fetch(apiBase + '/ads/' + encodeURIComponent(adId));
+        if (!res.ok) {
+          showNotification('Объявление не найдено', 'error');
+          return;
+        }
+        const data = await res.json();
+        const ad = data.ad || data.Ad || data;
+        if (!ad) {
+          showNotification('Объявление не найдено', 'error');
+          return;
+        }
+        const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+        openAdPage(ad, imgUrls);
+      } catch (e) {
+        console.error(e);
+        showNotification('Ошибка загрузки объявления', 'error');
+      }
+    }
+
+    // Открытие отдельной страницы объявления с возможностью переключать картинки
+    function openAdPage(ad, imgUrls) {
+      const detailSection = document.getElementById('ad-detail-section');
+      const detailContent = document.getElementById('ad-detail-content');
+      const searchSection = document.querySelector('.search-section');
+      const createSection = document.querySelector('.create-ad-section');
+      if (!detailSection || !detailContent) return;
+
+      const title = ad.title || ad.Title || 'Без названия';
+      const id = ad.id || ad.Id || '?';
+      const priceValue = ad.price ?? ad.Price ?? 0;
+      const description = ad.description || ad.Description || 'Нет описания';
+      const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+      const authorId = ad.author_id || ad.authorId || ad.AuthorId || '';
+      const currentUserId = (window.currentUser && (window.currentUser.id || window.currentUser.user_id || window.currentUser.UserId || window.currentUser.Id)) || '';
+      const isOwner = !!currentUserId && !!authorId && currentUserId === authorId;
+      const urls = Array.isArray(imgUrls) ? imgUrls : [];
+
+      // Обновляем URL, чтобы можно было поделиться ссылкой на объявление
+      const newHash = '#ad-' + encodeURIComponent(id);
+      if (window.location.hash !== newHash) {
+        history.replaceState(null, '', newHash);
+      }
+
+      let mainImageHtml = '';
+      let thumbsHtml = '';
+
+      if (urls.length > 0) {
+        mainImageHtml = `
+          <div class="ad-detail-main-image-wrapper">
+            <img id="ad-detail-main-image" src="${urls[0]}" alt="${title}" class="ad-detail-main-image" loading="lazy">
+          </div>
+        `;
+        if (urls.length > 1) {
+          thumbsHtml = `
+            <div class="ad-detail-thumbs">
+              ${urls.map((u, idx) => `
+                <img src="${u}" data-index="${idx}" class="ad-detail-thumb ${idx === 0 ? 'active' : ''}" alt="${title} #${idx + 1}" loading="lazy">
+              `).join('')}
+            </div>
+          `;
+        }
+      } else {
+        mainImageHtml = `
+          <div class="ad-detail-main-image-wrapper">
+            <div class="no-image">
+              <i class="fas fa-image"></i>
+            </div>
+          </div>
+        `;
+      }
+
+      let ownerBlockHtml = '';
+      let ownerEditHtml = '';
+      if (isOwner) {
+        ownerBlockHtml = `
+          <hr style="margin:1.5rem 0;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <h3 class="section-title" style="font-size:1rem;margin:0;flex:1 1 auto;">
+              <i class="fas fa-user-cog"></i> Ваше объявление
+            </h3>
+            <button id="btn-toggle-edit-ad" class="btn btn-secondary" style="width:auto;padding:0.35rem 0.8rem;font-size:0.85rem;">
+              <i class="fas fa-edit"></i> Редактировать
+            </button>
+            <button id="btn-delete-ad-detail" class="btn" style="background-color:var(--error);width:auto;padding:0.35rem 0.8rem;font-size:0.85rem;">
+              <i class="fas fa-trash"></i> Удалить
+            </button>
+          </div>
+        `;
+
+        ownerEditHtml = `
+          <div id="edit-ad-block" style="margin-top:1rem;display:none;">
+            <div class="form-group">
+              <label for="edit-ad-title">Заголовок</label>
+              <input id="edit-ad-title" type="text" value="${title}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-price">Цена (₽)</label>
+              <input id="edit-ad-price" type="number" step="0.01" value="${priceValue}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-category">Категория</label>
+              <input id="edit-ad-category" type="text" value="${categoryName}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-description">Описание</label>
+              <textarea id="edit-ad-description" rows="3">${description}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-images">Новые фотографии (полностью заменить)</label>
+              <input id="edit-ad-images" type="file" multiple accept="image/*">
+              <div id="edit-file-list" style="margin-top:0.5rem;font-size:0.85rem;color:var(--gray);">Файлы не выбраны</div>
+            </div>
+            <div class="search-btn-wrapper">
+              <button id="btn-save-ad" class="btn btn-secondary">
+                <i class="fas fa-save"></i> Сохранить изменения
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      detailContent.innerHTML = `
+        <div class="ad-detail-main">
+          <div>
+            ${mainImageHtml}
+            ${thumbsHtml}
+          </div>
+          <div>
+            <h2 class="ad-modal-title" style="margin-top:0;">${title}</h2>
+            <div class="ad-modal-meta">
+              <span class="ad-modal-price">${priceValue} ₽</span>
+              <span class="ad-modal-category">${categoryName}</span>
+              <span class="ad-modal-id"><i class="fas fa-hashtag"></i> ID: ${id}</span>
+            </div>
+            <p class="ad-detail-description">${description}</p>
+            ${ownerBlockHtml}
+            ${ownerEditHtml}
+          </div>
+        </div>
+      `;
+
+      // Переключение видимости секций
+      detailSection.style.display = '';
+      if (searchSection) searchSection.style.display = 'none';
+      if (createSection) createSection.style.display = 'none';
+
+      // Логика переключения картинок
+      const mainImgEl = document.getElementById('ad-detail-main-image');
+      const thumbsEls = detailContent.querySelectorAll('.ad-detail-thumb');
+      thumbsEls.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+          const idx = parseInt(thumb.getAttribute('data-index') || '0', 10);
+          if (mainImgEl && urls[idx]) {
+            mainImgEl.src = urls[idx];
+          }
+          thumbsEls.forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+      });
+
+      // Обработчики редактирования и удаления только для владельца
+      if (isOwner) {
+        const btnToggleEdit = document.getElementById('btn-toggle-edit-ad');
+        const editBlock = document.getElementById('edit-ad-block');
+        if (btnToggleEdit && editBlock) {
+          btnToggleEdit.addEventListener('click', () => {
+            const isHidden = editBlock.style.display === 'none' || !editBlock.style.display;
+            editBlock.style.display = isHidden ? '' : 'none';
+          });
+        }
+
+        const editImagesInput = document.getElementById('edit-ad-images');
+        if (editImagesInput) {
+          editImagesInput.addEventListener('change', updateEditFileList);
+        }
+
+        const btnSaveAd = document.getElementById('btn-save-ad');
+        if (btnSaveAd) {
+          btnSaveAd.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+
+            const newTitle = (document.getElementById('edit-ad-title').value || '').trim();
+            const newDescription = (document.getElementById('edit-ad-description').value || '').trim();
+            const newCategory = (document.getElementById('edit-ad-category').value || '').trim();
+            const priceInput = document.getElementById('edit-ad-price').value || '';
+            const newPrice = parseFloat(priceInput || '0');
+
+            if (!newTitle || !newDescription || newPrice <= 0) {
+              showNotification('Заполните заголовок, описание и цену (больше 0)', 'error');
+              return;
+            }
+
+            const body = {
+              title: newTitle,
+              description: newDescription,
+              price: newPrice,
+              category: newCategory || 'general',
+            };
+
+            const images = [];
+            for (const file of editSelectedFiles) {
+              const b64 = await fileToBase64(file);
+              images.push(b64);
+            }
+            if (images.length > 0) {
+              body.images = images;
+            }
+
+            try {
+              const res = await fetch(apiBase + '/ads/' + id, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(body),
+              });
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                showNotification('Ошибка обновления объявления: ' + (data.error || res.status), 'error');
+                return;
+              }
+              showNotification('Объявление обновлено', 'success');
+            } catch (e) {
+              console.error(e);
+              showNotification('Ошибка сети при обновлении объявления', 'error');
+            }
+          });
+        }
+
+        const btnDeleteAdDetail = document.getElementById('btn-delete-ad-detail');
+        if (btnDeleteAdDetail) {
+          btnDeleteAdDetail.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+            if (!confirm('Удалить это объявление?')) {
+              return;
+            }
+            try {
+              const res = await fetch(apiBase + '/ads/' + id, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                },
+              });
+              if (!res.ok) {
+                showNotification('Ошибка удаления объявления: ' + res.status, 'error');
+                return;
+              }
+              showNotification('Объявление удалено', 'success');
+              // Возвращаемся к списку объявлений
+              const detailSectionEl = document.getElementById('ad-detail-section');
+              const searchSectionEl = document.querySelector('.search-section');
+              const createSectionEl = document.querySelector('.create-ad-section');
+              if (detailSectionEl) detailSectionEl.style.display = 'none';
+              if (searchSectionEl) searchSectionEl.style.display = '';
+              if (createSectionEl) createSectionEl.style.display = '';
+              const searchBtn = document.getElementById('btn-search');
+              if (searchBtn) {
+                searchBtn.click();
+              }
+            } catch (e) {
+              console.error(e);
+              showNotification('Ошибка сети при удалении объявления', 'error');
+            }
+          });
+        }
+      }
     }
 
     // Загрузка профиля пользователя и его объявлений
@@ -1683,7 +1961,7 @@
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        // Добавляем клик по моим объявлениям для открытия модального окна объявления
+        // Добавляем клик по моим объявлениям для открытия страницы объявления
         const adsGrid = content.querySelector('.ads-grid');
         if (adsGrid && Array.isArray(myAds) && myAds.length > 0) {
           const cards = adsGrid.querySelectorAll('.ad-card');
@@ -1692,10 +1970,10 @@
             if (!ad) return;
             const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
             cardEl.addEventListener('click', () => {
-              // Сначала закрываем модалку профиля, затем открываем окно объявления,
+              // Сначала закрываем модалку профиля, затем открываем страницу объявления,
               // чтобы они не перекрывали друг друга.
               closeProfileModal();
-              openAdModal(ad, imgUrls);
+              openAdPage(ad, imgUrls);
             });
           });
         }
@@ -1900,10 +2178,10 @@
                 </div>
               `;
 
-				// Клик по карточке открывает модальное окно с подробной информацией и всеми картинками
-				card.addEventListener('click', () => {
-				  openAdModal(ad, imgUrls);
-				});
+			// Клик по карточке открывает отдельную страницу объявления с возможностью листать картинки
+			card.addEventListener('click', () => {
+			  openAdPage(ad, imgUrls);
+			});
 
               container.appendChild(card);
             }
@@ -1949,6 +2227,17 @@
       
       // Обработчик выбора файлов
       document.getElementById('ad-images').addEventListener('change', updateFileList);
+
+      // Если в URL уже указан id объявления — открываем его (deep-link)
+      const initialAdId = getAdIdFromURL();
+      if (initialAdId) {
+        // Если режим ещё не выбран, даём гостевой доступ для просмотра объявления
+        if (!localStorage.getItem('sessionMode')) {
+          localStorage.setItem('sessionMode', 'guest');
+          applySessionMode();
+        }
+        openAdById(initialAdId);
+      }
 
       // Кнопка выхода
       document.getElementById('btn-logout').addEventListener('click', () => {
@@ -2002,6 +2291,22 @@
       const btnProfile = document.getElementById('btn-profile');
       if (btnProfile) {
         btnProfile.addEventListener('click', openProfile);
+      }
+
+      // Кнопка "Назад" на странице объявления
+      const adDetailBack = document.getElementById('ad-detail-back');
+      if (adDetailBack) {
+        adDetailBack.addEventListener('click', () => {
+          const detailSection = document.getElementById('ad-detail-section');
+          const searchSection = document.querySelector('.search-section');
+          const createSection = document.querySelector('.create-ad-section');
+          if (detailSection) detailSection.style.display = 'none';
+          if (searchSection) searchSection.style.display = '';
+          if (createSection) createSection.style.display = '';
+          // Очищаем хэш в адресной строке, чтобы URL оставался "чистым"
+          const cleanUrl = window.location.pathname + window.location.search;
+          history.replaceState(null, '', cleanUrl);
+        });
       }
 
       // Закрытие модального окна объявления
