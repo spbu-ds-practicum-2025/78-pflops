@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package media;
 
+option go_package = "78-pflops/services/http_gateway/mediapb;mediapb";
+
 service MediaService {
   rpc UploadMedia(UploadMediaRequest) returns (UploadMediaResponse);
   rpc GetMedia(GetMediaRequest) returns (GetMediaResponse);

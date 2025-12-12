@@ -6,6 +6,8 @@ import (
 
 	"78-pflops/services/ad_service/internal/model"
 	"78-pflops/services/ad_service/internal/repository"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // repoInterface abstracts persistence for testability.
@@ -19,6 +21,8 @@ type repoInterface interface {
 	ListImages(ctx context.Context, adID string) ([]model.AdImage, error)
 	DetachMedia(ctx context.Context, adID, mediaID string) error
 	ReplaceImages(ctx context.Context, adID string, mediaIDs []string) error
+	CreateTx(ctx context.Context, tx pgx.Tx, ad *model.Ad) error
+	AttachMediaTx(ctx context.Context, tx pgx.Tx, adID, mediaID string) error
 }
 
 type AdService struct {
@@ -126,25 +130,48 @@ func (s *AdService) ReplaceImages(ctx context.Context, adID, userID string, medi
 }
 
 func (s *AdService) CreateAdWithImages(ctx context.Context, userID, title, description string, price int64, mediaIDs []string) (*model.Ad, error) {
-	ad, err := s.CreateAd(ctx, userID, title, description, price)
+	// Get concrete repo for pool access
+	concreteRepo := s.repo.(*repository.AdRepository)
+
+	// Start transaction
+	tx, err := concreteRepo.Pool().Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var attached []string
+	defer tx.Rollback(ctx)
+
+	// Create ad
+	// Minimal defaults to satisfy schema
+	defaultCategory := "00000000-0000-0000-0000-000000000000"
+	defaultCondition := "NEW"
+	defaultStatus := "ACTIVE"
+	ad := &model.Ad{
+		AuthorID:    userID,
+		Title:       title,
+		Description: description,
+		Price:       price,
+		CategoryID:  defaultCategory,
+		Condition:   defaultCondition,
+		Status:      defaultStatus,
+	}
+	if err := s.repo.CreateTx(ctx, tx, ad); err != nil {
+		return nil, err
+	}
+
+	// Attach media
 	for _, mid := range mediaIDs {
 		if mid == "" {
 			continue
 		}
-		if err := s.AttachMedia(ctx, ad.ID, mid); err != nil {
-			// Cleanup: detach any media that was already attached
-			for _, attachedMid := range attached {
-				_ = s.DetachMedia(ctx, ad.ID, attachedMid)
-			}
-			// Cleanup: delete the ad
-			_ = s.DeleteAd(ctx, ad.ID, userID)
+		if err := s.repo.AttachMediaTx(ctx, tx, ad.ID, mid); err != nil {
 			return nil, err
 		}
-		attached = append(attached, mid)
 	}
+
+	// Commit transaction
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	return ad, nil
 }

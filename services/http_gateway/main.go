@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	adpb "78-pflops/services/ad_service/pb/ad_service/pb"
-	mediapb "78-pflops/services/http_gateway/mediapb"
+	mediapb "78-pflops/services/http_gateway/mediapb/mediapb"
 	userpb "78-pflops/services/user_service/pb/user_service/pb"
 )
 
@@ -279,7 +279,8 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 	defer mediaConn.Close()
 
 	mediaClient := mediapb.NewMediaServiceClient(mediaConn)
-	mediaIDs := make([]string, 0, len(req.Images))
+	mediaIDs := make([]string, 0, len(req.Images))     // URLs for ad creation
+	mediaIDsList := make([]string, 0, len(req.Images)) // IDs for compensation
 	for idx, imgB64 := range req.Images {
 		if imgB64 == "" {
 			continue
@@ -304,6 +305,10 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Save media ID for potential compensation
+		mediaID := upResp.MediaId
+		mediaIDsList = append(mediaIDsList, mediaID)
+
 		// Используем URL, который вернул MediaService; если по какой-то причине
 		// он пустой, сохраняем data:-URL как запасной вариант, чтобы картинки
 		// продолжали отображаться.
@@ -312,6 +317,9 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 			url = "data:image/jpeg;base64," + imgB64
 		}
 		mediaIDs = append(mediaIDs, url)
+
+		// Log each successful upload for tracing (media id and url)
+		log.Printf("uploaded media: %s -> %s", mediaID, url)
 	}
 
 	adConn, err := grpc.DialContext(ctx, g.adSvcAddr, grpc.WithInsecure())
@@ -331,6 +339,32 @@ func (g *gateway) createAd(w http.ResponseWriter, r *http.Request) {
 		MediaIds:    mediaIDs,
 	})
 	if err != nil {
+		log.Printf("compensation: mediaIDsList to delete: %v", mediaIDsList)
+		// Use fresh short-lived contexts for each delete and retry a few times
+		for _, mid := range mediaIDsList {
+			var lastErr error
+			var lastResp *mediapb.DeleteMediaResponse
+			for attempt := 1; attempt <= 3; attempt++ {
+				cctx, ccancel := context.WithTimeout(context.Background(), 5*time.Second)
+				resp, derr := mediaClient.DeleteMedia(cctx, &mediapb.DeleteMediaRequest{
+					MediaId: mid,
+					UserId:  me.UserID,
+				})
+				ccancel()
+				if derr != nil {
+					lastErr = derr
+					log.Printf("compensation: attempt %d DeleteMedia failed for %s: %v", attempt, mid, derr)
+					time.Sleep(200 * time.Millisecond)
+					continue
+				}
+				lastResp = resp
+				log.Printf("compensation: DeleteMedia ok for %s: %+v", mid, resp)
+				break
+			}
+			if lastErr != nil && lastResp == nil {
+				log.Printf("compensation: DeleteMedia final failure for %s: %v", mid, lastErr)
+			}
+		}
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}

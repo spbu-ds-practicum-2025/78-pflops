@@ -21,6 +21,10 @@ func NewAdRepository(pool *pgxpool.Pool) *AdRepository {
 	return &AdRepository{pool: pool}
 }
 
+func (r *AdRepository) Pool() *pgxpool.Pool {
+	return r.pool
+}
+
 func (r *AdRepository) Create(ctx context.Context, ad *model.Ad) error {
 	if ad.ID == "" {
 		ad.ID = uuid.New().String()
@@ -28,6 +32,19 @@ func (r *AdRepository) Create(ctx context.Context, ad *model.Ad) error {
 	ad.CreatedAt = time.Now()
 	ad.UpdatedAt = ad.CreatedAt
 	_, err := r.pool.Exec(ctx, `INSERT INTO ads (id, author_id, title, description, price, category_id, condition, status, seller_rating_cached, created_at, updated_at)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+		ad.ID, ad.AuthorID, ad.Title, ad.Description, ad.Price, ad.CategoryID, ad.Condition, ad.Status, ad.SellerRatingCached, ad.CreatedAt, ad.UpdatedAt,
+	)
+	return err
+}
+
+func (r *AdRepository) CreateTx(ctx context.Context, tx pgx.Tx, ad *model.Ad) error {
+	if ad.ID == "" {
+		ad.ID = uuid.New().String()
+	}
+	ad.CreatedAt = time.Now()
+	ad.UpdatedAt = ad.CreatedAt
+	_, err := tx.Exec(ctx, `INSERT INTO ads (id, author_id, title, description, price, category_id, condition, status, seller_rating_cached, created_at, updated_at)
 	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
 		ad.ID, ad.AuthorID, ad.Title, ad.Description, ad.Price, ad.CategoryID, ad.Condition, ad.Status, ad.SellerRatingCached, ad.CreatedAt, ad.UpdatedAt,
 	)
@@ -157,7 +174,13 @@ func (r *AdRepository) AttachMedia(ctx context.Context, adID, mediaID string) er
 	return err
 }
 
-// DetachMedia removes link between an ad and a single media entry.
+func (r *AdRepository) AttachMediaTx(ctx context.Context, tx pgx.Tx, adID, mediaID string) error {
+	// store mediaID as URL for simplicity
+	id := uuid.New().String()
+	_, err := tx.Exec(ctx, `INSERT INTO ad_images (id, ad_id, url, is_primary, position) VALUES ($1,$2,$3,false,0)`, id, adID, mediaID)
+	return err
+}
+
 func (r *AdRepository) DetachMedia(ctx context.Context, adID, mediaID string) error {
 	res, err := r.pool.Exec(ctx, `DELETE FROM ad_images WHERE ad_id=$1 AND url=$2`, adID, mediaID)
 	if err != nil {
