@@ -1,6 +1,7 @@
 import grpc
 from internal.core.service import MediaService
 from pkg.pb import media_pb2, media_pb2_grpc
+from config import settings
 
 class MediaServiceServicer(media_pb2_grpc.MediaServiceServicer):
     def __init__(self):
@@ -15,12 +16,13 @@ class MediaServiceServicer(media_pb2_grpc.MediaServiceServicer):
                 file_name=request.file_name
             )
             
-            url = self.media_service.get_presigned_url(media_id)
-            
+            # Формируем стабильный HTTP URL через nginx, а не presigned-ссылку MinIO
+            public_url = f"/media/{settings.MINIO_BUCKET}/{media_id}"
+
             return media_pb2.UploadMediaResponse(
                 media_id=media_id,
                 message="Файл успешно загружен",
-                url=url or ""
+                url=public_url
             )
             
         except Exception as e:

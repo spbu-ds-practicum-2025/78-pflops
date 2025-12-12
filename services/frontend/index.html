@@ -1,0 +1,2364 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Moonshine Marketplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --secondary: #10b981;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --gray-light: #e2e8f0;
+      --error: #ef4444;
+      --success: #10b981;
+      --border-radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Темная тема */
+    .dark-mode {
+      --light: #0f172a;
+      --dark: #f1f5f9;
+      --gray: #94a3b8;
+      --gray-light: #334155;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Фоновые градиенты для светлой и темной темы */
+    body:not(.dark-mode) {
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 20%);
+    }
+
+    body.dark-mode {
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .logo i {
+      font-size: 2rem;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: none;
+      color: var(--dark);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background-color: var(--gray-light);
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--gray);
+      color: white;
+    }
+
+    .theme-toggle i {
+      font-size: 1.2rem;
+    }
+
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--gray-light);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      font-size: 0.9rem;
+    }
+
+    .token-display {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+
+    body.dark-mode .token-display {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .auth-card {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .auth-card {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .auth-card h2 {
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--gray);
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .auth-card h2 i {
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 0.95rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+      background-color: var(--light);
+      color: var(--dark);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn i {
+      font-size: 1.1rem;
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+
+    .btn-secondary:hover {
+      background-color: #0da271;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+      font-size: 1.5rem;
+    }
+
+    .section-title i {
+      color: var(--primary);
+    }
+
+    .create-ad-section, .search-section {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .create-ad-section,
+    body.dark-mode .search-section {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background-color: var(--light);
+      border-radius: 8px;
+      border: 2px dashed var(--gray);
+      color: var(--dark);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .file-input-wrapper:hover .file-input-label {
+      background-color: rgba(124, 58, 237, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .search-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-btn-wrapper {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .search-btn-wrapper .btn {
+      width: auto;
+      padding: 0.75rem 2rem;
+    }
+
+    .ads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .ad-card {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .ad-card {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ad-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .ad-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-bottom: 1px solid var(--gray);
+    }
+
+    .no-image {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #7c3aed 0%, #10b981 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+
+    .ad-content {
+      padding: 1.25rem;
+    }
+
+    .ad-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--dark);
+      line-height: 1.3;
+    }
+
+    .ad-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-category {
+      display: inline-block;
+      background-color: rgba(124, 58, 237, 0.2);
+      color: var(--primary);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-description {
+      color: var(--gray);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ad-id {
+      font-size: 0.8rem;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-count {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    .raw-data {
+      background-color: var(--dark);
+      color: var(--light);
+      padding: 1.25rem;
+      border-radius: var(--border-radius);
+      margin-top: 2rem;
+      overflow: auto;
+      border: 1px solid var(--gray);
+    }
+
+    .raw-data summary {
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: block;
+      color: var(--light);
+    }
+
+    .raw-data pre {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .notification {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius);
+      color: white;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.3s ease;
+      max-width: 350px;
+      backdrop-filter: blur(10px);
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    body.dark-mode .notification {
+      background-color: rgba(0, 0, 0, 0.9);
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .notification.error {
+      border-left: 4px solid var(--error);
+    }
+
+    .notification.info {
+      border-left: 4px solid var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--gray);
+      margin-top: 3rem;
+    }
+
+    /* Переключатель темы с анимацией */
+    .theme-toggle .fa-sun {
+      display: none;
+    }
+
+    .theme-toggle .fa-moon {
+      display: inline-block;
+    }
+
+    body.dark-mode .theme-toggle .fa-sun {
+      display: inline-block;
+    }
+
+    body.dark-mode .theme-toggle .fa-moon {
+      display: none;
+    }
+
+    /* Загрузчик для изображений */
+    .image-loading {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(90deg, var(--gray) 25%, var(--gray-light) 50%, var(--gray) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .auth-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row, .search-filters {
+        grid-template-columns: 1fr;
+      }
+      
+      .ads-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .user-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* Плавный переход для переключения темы */
+    body.theme-transition {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Стили для пустого состояния */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      color: var(--gray);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Галерея картинок в карточке */
+    .ad-image-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .image-count-badge {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .image-count-badge i {
+      font-size: 0.8rem;
+    }
+
+    /* Модальное окно для отдельного объявления */
+    .ad-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+    }
+
+    .ad-modal.hidden {
+      display: none;
+    }
+
+    .ad-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .ad-modal-dialog {
+      position: relative;
+      background: var(--light);
+      color: var(--dark);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      z-index: 1;
+    }
+
+    body.dark-mode .ad-modal-dialog {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .ad-modal-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+
+    .ad-modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .ad-modal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .ad-modal-price {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+
+    .ad-modal-category {
+      background-color: rgba(124, 58, 237, 0.15);
+      color: var(--primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .ad-modal-id {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .ad-modal-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .ad-modal-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .ad-modal-description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Страница отдельного объявления */
+    .ad-detail-section {
+      background: var(--gray-light);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .ad-detail-section {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ad-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .ad-detail-main {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .ad-detail-main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ad-detail-main-image-wrapper {
+      background: #000;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+    }
+
+    .ad-detail-main-image {
+      width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .ad-detail-thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .ad-detail-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .ad-detail-thumb.active {
+      border-color: var(--primary);
+    }
+
+    .ad-detail-meta-block {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      color: var(--gray);
+    }
+
+    .ad-detail-description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Стартовый экран выбора режима (регистрация/вход/гость) */
+    .entry-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1300;
+    }
+
+    .entry-overlay.hidden {
+      display: none;
+    }
+
+    .entry-card {
+      background: var(--light);
+      color: var(--dark);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    body.dark-mode .entry-card {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .entry-card h2 {
+      margin-bottom: 0.75rem;
+      font-size: 1.6rem;
+    }
+
+    .entry-card p {
+      margin-bottom: 1.5rem;
+      color: var(--gray);
+    }
+
+    .entry-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .entry-actions .btn {
+      width: 100%;
+    }
+
+    /* Стили для скроллбара */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--gray-light);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-moon"></i>
+        <span>Moonshine Marketplace</span>
+      </div>
+      <div class="header-controls">
+        <button class="theme-toggle" id="theme-toggle" title="Переключить тему">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+          <span id="theme-text">Темная тема</span>
+        </button>
+        <div class="user-status">
+          <span>Статус: <strong id="auth-status">Не авторизован</strong></span>
+          <div class="token-display" id="token-view" title="Текущий пользователь">
+            <i class="fas fa-user"></i> <span id="user-text">(гость)</span>
+          </div>
+          <button id="btn-profile" class="btn btn-secondary" style="width:auto;padding:0.4rem 0.8rem;font-size:0.8rem;">
+            <i class="fas fa-id-card"></i>
+          </button>
+          <button id="btn-logout" class="btn btn-secondary" style="width:auto;padding:0.4rem 0.8rem;font-size:0.8rem;">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="auth-section">
+        <div class="auth-card">
+          <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input id="reg-email" type="email" placeholder="example@mail.com" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Пароль</label>
+            <input id="reg-password" type="password" placeholder="Не менее 6 символов" />
+          </div>
+          <div class="form-group">
+            <label for="reg-name">Имя</label>
+            <input id="reg-name" type="text" placeholder="Ваше имя" />
+          </div>
+          <button id="btn-register" class="btn">
+            <i class="fas fa-user-check"></i> Зарегистрироваться
+          </button>
+        </div>
+
+        <div class="auth-card">
+          <h2><i class="fas fa-sign-in-alt"></i> Вход в систему</h2>
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" placeholder="example@mail.com" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Пароль</label>
+            <input id="login-password" type="password" placeholder="Ваш пароль" />
+          </div>
+          <button id="btn-login" class="btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> Войти
+          </button>
+        </div>
+      </div>
+
+      <section class="create-ad-section">
+        <h2 class="section-title"><i class="fas fa-plus-circle"></i> Создать объявление</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ad-title">Заголовок</label>
+            <input id="ad-title" type="text" placeholder="Название товара или услуги" />
+          </div>
+          <div class="form-group">
+            <label for="ad-price">Цена (₽)</label>
+            <input id="ad-price" type="number" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label for="ad-category">Категория</label>
+            <input id="ad-category" type="text" value="electronics" placeholder="Электроника" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ad-description">Описание</label>
+          <textarea id="ad-description" rows="3" placeholder="Подробное описание товара или услуги..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Фотографии (можно выбрать несколько)</label>
+          <div class="file-input-wrapper">
+            <input id="ad-images" type="file" multiple accept="image/*" />
+            <div class="file-input-label">
+              <i class="fas fa-cloud-upload-alt"></i> 
+              <span>Выберите файлы или перетащите сюда</span>
+            </div>
+          </div>
+          <div id="file-list" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray);"></div>
+        </div>
+        <div class="search-btn-wrapper">
+          <button id="btn-create-ad" class="btn">
+            <i class="fas fa-bullhorn"></i> Опубликовать объявление
+          </button>
+        </div>
+      </section>
+
+      <section class="search-section">
+        <div class="results-header">
+          <h2 class="section-title"><i class="fas fa-search"></i> Поиск объявлений</h2>
+          <div class="results-count">Найдено: <span id="results-count">0</span></div>
+        </div>
+        
+        <div class="search-filters">
+          <div class="form-group">
+            <label for="search-query">Поиск</label>
+            <input id="search-query" type="text" placeholder="Смартфон, ноутбук, услуга..." />
+          </div>
+          <div class="form-group">
+            <label for="search-category">Категория</label>
+            <input id="search-category" type="text" placeholder="Любая категория" />
+          </div>
+          <div class="form-group">
+            <label for="search-min">Цена от (₽)</label>
+            <input id="search-min" type="number" step="0.01" placeholder="Минимум" />
+          </div>
+          <div class="form-group">
+            <label for="search-max">Цена до (₽)</label>
+            <input id="search-max" type="number" step="0.01" placeholder="Максимум" />
+          </div>
+        </div>
+        
+        <div class="search-btn-wrapper">
+          <button id="btn-search" class="btn">
+            <i class="fas fa-search"></i> Найти объявления
+          </button>
+        </div>
+
+        <div id="ads-container" class="ads-grid"></div>
+        
+        <details class="raw-data">
+          <summary>JSON</summary>
+          <pre id="search-results">Здесь будут отображены данные в формате JSON после выполнения поиска</pre>
+        </details>
+      </section>
+
+      <!-- Страница отдельного объявления -->
+      <section id="ad-detail-section" class="ad-detail-section" style="display:none;">
+        <div class="ad-detail-header">
+          <h2 class="section-title"><i class="fas fa-bullhorn"></i> Объявление</h2>
+          <button id="ad-detail-back" class="btn btn-secondary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;">
+            <i class="fas fa-arrow-left"></i> Назад к списку
+          </button>
+        </div>
+        <div id="ad-detail-content"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Moonshine Marketplace © 2025. Made by 78-pflops.</p>
+      <p>Платформа для покупки и продажи товаров и услуг</p>
+    </footer>
+  </div>
+
+  <!-- Модальное окно для просмотра отдельного объявления и всех картинок -->
+  <div id="ad-modal" class="ad-modal hidden">
+    <div class="ad-modal-overlay"></div>
+    <div class="ad-modal-dialog">
+      <button id="ad-modal-close" class="ad-modal-close" aria-label="Закрыть">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="ad-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно профиля пользователя с его объявлениями -->
+  <div id="profile-modal" class="ad-modal hidden">
+    <div class="ad-modal-overlay"></div>
+    <div class="ad-modal-dialog">
+      <button id="profile-modal-close" class="ad-modal-close" aria-label="Закрыть профиль">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="profile-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Стартовый экран: выбор режима (регистрация / вход / гость) -->
+  <div id="entry-overlay" class="entry-overlay hidden">
+    <div class="entry-card">
+      <h2>Добро пожаловать в Moonshine Marketplace</h2>
+      <p>Выберите, как вы хотите начать работу с платформой.</p>
+      <div class="entry-actions">
+        <button id="entry-register" class="btn btn-secondary">
+          <i class="fas fa-user-plus"></i> Зарегистрироваться
+        </button>
+        <button id="entry-login" class="btn btn-secondary">
+          <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
+        </button>
+        <button id="entry-guest" class="btn" style="background-color: var(--gray);">
+          <i class="fas fa-user-secret"></i> Войти как гость
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script>
+    const apiBase = '/api';
+    let currentTheme = localStorage.getItem('theme') || 'light';
+    // Здесь будем хранить все выбранные файлы объявления, чтобы
+    // новые выборы не перетирали старые
+    let selectedFiles = [];
+    // Для редактирования объявлений будем хранить выбранные новые картинки
+    let editSelectedFiles = [];
+
+    // Применение текущего режима сессии (гость / пользователь / не выбран)
+    function applySessionMode() {
+      const mode = localStorage.getItem('sessionMode') || '';
+      const token = getToken();
+
+      const overlay = document.getElementById('entry-overlay');
+      const authSection = document.querySelector('.auth-section');
+      const createSection = document.querySelector('.create-ad-section');
+      const searchSection = document.querySelector('.search-section');
+      const btnProfile = document.getElementById('btn-profile');
+      const authCards = authSection ? authSection.querySelectorAll('.auth-card') : [];
+
+      // Если уже есть валидный токен — считаем, что пользователь авторизован
+      if (token) {
+        if (overlay) overlay.classList.add('hidden');
+        // После входа в систему блок с формами входа/регистрации скрываем
+        if (authSection) authSection.style.display = 'none';
+        if (createSection) createSection.style.display = '';
+        if (searchSection) searchSection.style.display = '';
+        if (btnProfile) btnProfile.style.display = 'inline-flex';
+        return;
+      }
+
+      // Режим ещё не выбран — показываем стартовый экран, скрываем функционал
+      if (!mode) {
+        if (overlay) overlay.classList.remove('hidden');
+        if (authSection) authSection.style.display = '';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = 'none';
+        if (btnProfile) btnProfile.style.display = 'none';
+        return;
+      }
+
+      // Режим гостя: только просмотр объявлений, без профиля и создания
+      if (mode === 'guest') {
+        if (overlay) overlay.classList.add('hidden');
+        if (authSection) authSection.style.display = 'none';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = '';
+        if (btnProfile) btnProfile.style.display = 'none';
+        return;
+      }
+
+      // Режим пользователя без токена: показываем формы входа/регистрации и поиск,
+      // но скрываем создание объявлений, просмотр объявлений и профиль до авторизации.
+      if (mode === 'user') {
+        if (overlay) overlay.classList.add('hidden');
+        if (authSection) authSection.style.display = '';
+        if (createSection) createSection.style.display = 'none';
+        if (searchSection) searchSection.style.display = 'none';
+        if (btnProfile) btnProfile.style.display = 'none';
+
+        // В зависимости от выбранного на стартовом экране варианта
+        // показываем только регистрацию или только логин.
+        const authView = localStorage.getItem('authView') || '';
+        if (authCards.length === 2) {
+          const regCard = authCards[0];
+          const loginCard = authCards[1];
+          if (authView === 'register') {
+            regCard.style.display = '';
+            loginCard.style.display = 'none';
+          } else if (authView === 'login') {
+            regCard.style.display = 'none';
+            loginCard.style.display = '';
+          } else {
+            regCard.style.display = '';
+            loginCard.style.display = '';
+          }
+        }
+      }
+    }
+
+    // Инициализация темы
+    function initTheme() {
+      if (currentTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        document.getElementById('theme-text').textContent = 'Светлая тема';
+      } else {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        document.getElementById('theme-text').textContent = 'Темная тема';
+      }
+    }
+
+    // Переключение темы
+    function toggleTheme() {
+      // Добавляем класс для плавного перехода
+      document.body.classList.add('theme-transition');
+      
+      if (currentTheme === 'light') {
+        currentTheme = 'dark';
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        document.getElementById('theme-text').textContent = 'Светлая тема';
+        showNotification('Темная тема включена', 'info');
+      } else {
+        currentTheme = 'light';
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        document.getElementById('theme-text').textContent = 'Темная тема';
+        showNotification('Светлая тема включена', 'info');
+      }
+      
+      localStorage.setItem('theme', currentTheme);
+      
+      // Убираем класс перехода после анимации
+      setTimeout(() => {
+        document.body.classList.remove('theme-transition');
+      }, 300);
+    }
+
+    // Уведомления
+    function showNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 4000);
+    }
+
+    // Работа с токеном и текущим пользователем
+    function getToken() {
+      return localStorage.getItem('jwt') || '';
+    }
+
+    async function updateUserInfo() {
+      const token = getToken();
+      const userTextEl = document.getElementById('user-text');
+      const statusEl = document.getElementById('auth-status');
+
+      if (!token) {
+        userTextEl.textContent = '(гость)';
+        statusEl.textContent = 'Не авторизован';
+        statusEl.style.color = 'var(--gray)';
+        return;
+      }
+
+      try {
+        const res = await fetch(apiBase + '/users/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!res.ok) {
+          throw new Error('failed');
+        }
+
+        const data = await res.json();
+        const userId = data.user_id || data.UserId || data.id || data.Id || '';
+        const name = data.name || data.Name || data.email || data.Email || 'пользователь';
+        userTextEl.textContent = name;
+        statusEl.textContent = 'Авторизован';
+        statusEl.style.color = 'var(--success)';
+
+        // Сохраняем текущего пользователя глобально, чтобы понимать, какие объявления его
+        window.currentUser = { id: userId, raw: data };
+      } catch (e) {
+        // Токен невалиден или сервер недоступен — очищаем
+        clearToken();
+      }
+    }
+
+    function setToken(token) {
+      if (token) {
+        localStorage.setItem('jwt', token);
+        localStorage.setItem('sessionMode', 'user');
+        showNotification('Авторизация успешна', 'success');
+        updateUserInfo();
+        applySessionMode();
+      }
+    }
+
+    function clearToken() {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('sessionMode');
+      localStorage.removeItem('authView');
+      const userTextEl = document.getElementById('user-text');
+      const statusEl = document.getElementById('auth-status');
+      userTextEl.textContent = '(гость)';
+      statusEl.textContent = 'Не авторизован';
+      statusEl.style.color = 'var(--gray)';
+      applySessionMode();
+    }
+
+    // Преобразование файла в base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            const parts = result.split(',', 2);
+            resolve(parts.length === 2 ? parts[1] : parts[0]);
+          } else {
+            reject(new Error('Unexpected FileReader result'));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Отображение выбранных файлов
+    function updateFileList() {
+      const input = document.getElementById('ad-images');
+      const files = Array.from(input.files || []);
+      const fileList = document.getElementById('file-list');
+
+      // Добавляем новые файлы к уже выбранным (если пользователь
+      // несколько раз открывает диалог выбора файлов)
+      if (files.length > 0) {
+        selectedFiles = selectedFiles.concat(files);
+        // Очищаем input, чтобы повторный выбор тех же файлов снова вызывал change
+        input.value = '';
+      }
+
+      if (selectedFiles.length === 0) {
+        fileList.innerHTML = 'Файлы не выбраны';
+        return;
+      }
+      
+      if (files.length === 0) {
+        // уже обработали случай пустого списка выше
+      }
+      
+      let fileNames = [];
+      for (let i = 0; i < Math.min(selectedFiles.length, 3); i++) {
+        fileNames.push(selectedFiles[i].name);
+      }
+      
+      let fileText = `Выбрано файлов: ${selectedFiles.length}`;
+      if (selectedFiles.length > 3) {
+        fileText += ` (${fileNames.join(', ')} и еще ${selectedFiles.length - 3})`;
+      } else {
+        fileText += ` (${fileNames.join(', ')})`;
+      }
+      
+      fileList.innerHTML = `<i class="fas fa-paperclip"></i> ${fileText}`;
+    }
+
+    // Отображение выбранных файлов для редактирования объявления
+    function updateEditFileList() {
+      const input = document.getElementById('edit-ad-images');
+      const fileList = document.getElementById('edit-file-list');
+      if (!input || !fileList) return;
+
+      const files = Array.from(input.files || []);
+      editSelectedFiles = files;
+
+      if (files.length === 0) {
+        fileList.innerHTML = 'Файлы не выбраны';
+        return;
+      }
+
+      const names = files.slice(0, 3).map(f => f.name);
+      let text = `Выбрано файлов: ${files.length}`;
+      if (files.length > 3) {
+        text += ` (${names.join(', ')} и еще ${files.length - 3})`;
+      } else {
+        text += ` (${names.join(', ')})`;
+      }
+
+      fileList.innerHTML = `<i class="fas fa-paperclip"></i> ${text}`;
+    }
+
+    // Регистрация
+    document.getElementById('btn-register').onclick = async () => {
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const name = document.getElementById('reg-name').value;
+      
+      if (!email || !password || !name) {
+        showNotification('Заполните все поля для регистрации', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch(apiBase + '/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        
+        if (!res.ok) {
+          showNotification('Ошибка регистрации: ' + (data.error || res.status), 'error');
+          return;
+        }
+        
+        setToken(data.token);
+        showNotification('Регистрация прошла успешно!', 'success');
+        
+        // Очистка полей формы
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-name').value = '';
+        
+      } catch (e) {
+        showNotification('Ошибка сети при регистрации', 'error');
+      }
+    };
+
+    // Открытие модального окна с подробностями объявления и всеми картинками
+    function openAdModal(ad, imgUrls) {
+      const modal = document.getElementById('ad-modal');
+      const content = document.getElementById('ad-modal-content');
+      if (!modal || !content) return;
+
+      const title = ad.title || ad.Title || 'Без названия';
+      const id = ad.id || ad.Id || '?';
+      const priceValue = ad.price ?? ad.Price ?? 0;
+      const description = ad.description || ad.Description || 'Нет описания';
+      const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+      const authorId = ad.author_id || ad.authorId || ad.AuthorId || '';
+      const currentUserId = (window.currentUser && (window.currentUser.id || window.currentUser.user_id || window.currentUser.UserId || window.currentUser.Id)) || '';
+      const isOwner = !!currentUserId && !!authorId && currentUserId === authorId;
+      const urls = Array.isArray(imgUrls) ? imgUrls : [];
+
+      let imagesHTML = '';
+      if (urls.length > 0) {
+        imagesHTML = urls.map(u => `
+          <img src="${u}" alt="${title}" class="ad-modal-image" loading="lazy">
+        `).join('');
+      } else {
+        imagesHTML = `
+          <div class="no-image" style="margin-bottom: 1rem;">
+            <i class="fas fa-image"></i>
+          </div>
+        `;
+      }
+
+      let ownerActionsHTML = '';
+      if (isOwner) {
+        ownerActionsHTML = `
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="btn-edit-ad" class="btn btn-secondary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;">
+              <i class="fas fa-edit"></i> Редактировать
+            </button>
+            <button id="btn-delete-ad" class="btn" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem; background-color: var(--error);">
+              <i class="fas fa-trash"></i> Удалить
+            </button>
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <h2 class="ad-modal-title">${title}</h2>
+        <div class="ad-modal-meta">
+          <span class="ad-modal-price">${priceValue} ₽</span>
+          <span class="ad-modal-category">${categoryName}</span>
+          <span class="ad-modal-id"><i class="fas fa-hashtag"></i> ID: ${id}</span>
+        </div>
+        <div class="ad-modal-images">
+          ${imagesHTML}
+        </div>
+        <p class="ad-modal-description">${description}</p>
+        ${ownerActionsHTML}
+      `;
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // Навешиваем обработчики только для владельца (здесь только переход в режим редактирования на отдельной странице)
+      if (isOwner) {
+        const btnEdit = document.getElementById('btn-edit-ad');
+        const btnDelete = document.getElementById('btn-delete-ad');
+
+        if (btnEdit) {
+          btnEdit.addEventListener('click', () => {
+            closeAdModal();
+            openAdPage(ad, urls);
+          });
+        }
+
+        if (btnDelete) {
+          btnDelete.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+
+            if (!confirm('Удалить это объявление?')) {
+              return;
+            }
+
+            try {
+              const res = await fetch(apiBase + '/ads/' + id, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                },
+              });
+
+              if (!res.ok) {
+                showNotification('Ошибка удаления объявления: ' + res.status, 'error');
+                return;
+              }
+
+              showNotification('Объявление удалено', 'success');
+              closeAdModal();
+              const searchBtn = document.getElementById('btn-search');
+              if (searchBtn) {
+                searchBtn.click();
+              }
+            } catch (e) {
+              console.error(e);
+              showNotification('Ошибка сети при удалении объявления', 'error');
+            }
+          });
+        }
+      }
+    }
+
+    function closeAdModal() {
+      const modal = document.getElementById('ad-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Получение ID объявления из URL (hash или query)
+    function getAdIdFromURL() {
+      const hash = window.location.hash || '';
+      const hashMatch = hash.match(/^#ad-(.+)$/);
+      if (hashMatch && hashMatch[1]) {
+        return decodeURIComponent(hashMatch[1]);
+      }
+
+      const params = new URLSearchParams(window.location.search || '');
+      const fromQuery = params.get('ad');
+      if (fromQuery) {
+        return fromQuery;
+      }
+      return '';
+    }
+
+    // Загрузка объявления по ID и открытие отдельной страницы
+    async function openAdById(adId) {
+      if (!adId) return;
+      try {
+        const res = await fetch(apiBase + '/ads/' + encodeURIComponent(adId));
+        if (!res.ok) {
+          showNotification('Объявление не найдено', 'error');
+          return;
+        }
+        const data = await res.json();
+        const ad = data.ad || data.Ad || data;
+        if (!ad) {
+          showNotification('Объявление не найдено', 'error');
+          return;
+        }
+        const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+        openAdPage(ad, imgUrls);
+      } catch (e) {
+        console.error(e);
+        showNotification('Ошибка загрузки объявления', 'error');
+      }
+    }
+
+    // Открытие отдельной страницы объявления с возможностью переключать картинки
+    function openAdPage(ad, imgUrls) {
+      const detailSection = document.getElementById('ad-detail-section');
+      const detailContent = document.getElementById('ad-detail-content');
+      const searchSection = document.querySelector('.search-section');
+      const createSection = document.querySelector('.create-ad-section');
+      if (!detailSection || !detailContent) return;
+
+      const title = ad.title || ad.Title || 'Без названия';
+      const id = ad.id || ad.Id || '?';
+      const priceValue = ad.price ?? ad.Price ?? 0;
+      const description = ad.description || ad.Description || 'Нет описания';
+      const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+      const authorId = ad.author_id || ad.authorId || ad.AuthorId || '';
+      const currentUserId = (window.currentUser && (window.currentUser.id || window.currentUser.user_id || window.currentUser.UserId || window.currentUser.Id)) || '';
+      const isOwner = !!currentUserId && !!authorId && currentUserId === authorId;
+      const urls = Array.isArray(imgUrls) ? imgUrls : [];
+
+      // Обновляем URL, чтобы можно было поделиться ссылкой на объявление
+      const newHash = '#ad-' + encodeURIComponent(id);
+      if (window.location.hash !== newHash) {
+        history.replaceState(null, '', newHash);
+      }
+
+      let mainImageHtml = '';
+      let thumbsHtml = '';
+
+      if (urls.length > 0) {
+        mainImageHtml = `
+          <div class="ad-detail-main-image-wrapper">
+            <img id="ad-detail-main-image" src="${urls[0]}" alt="${title}" class="ad-detail-main-image" loading="lazy">
+          </div>
+        `;
+        if (urls.length > 1) {
+          thumbsHtml = `
+            <div class="ad-detail-thumbs">
+              ${urls.map((u, idx) => `
+                <img src="${u}" data-index="${idx}" class="ad-detail-thumb ${idx === 0 ? 'active' : ''}" alt="${title} #${idx + 1}" loading="lazy">
+              `).join('')}
+            </div>
+          `;
+        }
+      } else {
+        mainImageHtml = `
+          <div class="ad-detail-main-image-wrapper">
+            <div class="no-image">
+              <i class="fas fa-image"></i>
+            </div>
+          </div>
+        `;
+      }
+
+      let ownerBlockHtml = '';
+      let ownerEditHtml = '';
+      if (isOwner) {
+        ownerBlockHtml = `
+          <hr style="margin:1.5rem 0;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <h3 class="section-title" style="font-size:1rem;margin:0;flex:1 1 auto;">
+              <i class="fas fa-user-cog"></i> Ваше объявление
+            </h3>
+            <button id="btn-toggle-edit-ad" class="btn btn-secondary" style="width:auto;padding:0.35rem 0.8rem;font-size:0.85rem;">
+              <i class="fas fa-edit"></i> Редактировать
+            </button>
+            <button id="btn-delete-ad-detail" class="btn" style="background-color:var(--error);width:auto;padding:0.35rem 0.8rem;font-size:0.85rem;">
+              <i class="fas fa-trash"></i> Удалить
+            </button>
+          </div>
+        `;
+
+        ownerEditHtml = `
+          <div id="edit-ad-block" style="margin-top:1rem;display:none;">
+            <div class="form-group">
+              <label for="edit-ad-title">Заголовок</label>
+              <input id="edit-ad-title" type="text" value="${title}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-price">Цена (₽)</label>
+              <input id="edit-ad-price" type="number" step="0.01" value="${priceValue}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-category">Категория</label>
+              <input id="edit-ad-category" type="text" value="${categoryName}">
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-description">Описание</label>
+              <textarea id="edit-ad-description" rows="3">${description}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="edit-ad-images">Новые фотографии (полностью заменить)</label>
+              <input id="edit-ad-images" type="file" multiple accept="image/*">
+              <div id="edit-file-list" style="margin-top:0.5rem;font-size:0.85rem;color:var(--gray);">Файлы не выбраны</div>
+            </div>
+            <div class="search-btn-wrapper">
+              <button id="btn-save-ad" class="btn btn-secondary">
+                <i class="fas fa-save"></i> Сохранить изменения
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      detailContent.innerHTML = `
+        <div class="ad-detail-main">
+          <div>
+            ${mainImageHtml}
+            ${thumbsHtml}
+          </div>
+          <div>
+            <h2 class="ad-modal-title" style="margin-top:0;">${title}</h2>
+            <div class="ad-modal-meta">
+              <span class="ad-modal-price">${priceValue} ₽</span>
+              <span class="ad-modal-category">${categoryName}</span>
+              <span class="ad-modal-id"><i class="fas fa-hashtag"></i> ID: ${id}</span>
+            </div>
+            <p class="ad-detail-description">${description}</p>
+            ${ownerBlockHtml}
+            ${ownerEditHtml}
+          </div>
+        </div>
+      `;
+
+      // Переключение видимости секций
+      detailSection.style.display = '';
+      if (searchSection) searchSection.style.display = 'none';
+      if (createSection) createSection.style.display = 'none';
+
+      // Логика переключения картинок
+      const mainImgEl = document.getElementById('ad-detail-main-image');
+      const thumbsEls = detailContent.querySelectorAll('.ad-detail-thumb');
+      thumbsEls.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+          const idx = parseInt(thumb.getAttribute('data-index') || '0', 10);
+          if (mainImgEl && urls[idx]) {
+            mainImgEl.src = urls[idx];
+          }
+          thumbsEls.forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+      });
+
+      // Обработчики редактирования и удаления только для владельца
+      if (isOwner) {
+        const btnToggleEdit = document.getElementById('btn-toggle-edit-ad');
+        const editBlock = document.getElementById('edit-ad-block');
+        if (btnToggleEdit && editBlock) {
+          btnToggleEdit.addEventListener('click', () => {
+            const isHidden = editBlock.style.display === 'none' || !editBlock.style.display;
+            editBlock.style.display = isHidden ? '' : 'none';
+          });
+        }
+
+        const editImagesInput = document.getElementById('edit-ad-images');
+        if (editImagesInput) {
+          editImagesInput.addEventListener('change', updateEditFileList);
+        }
+
+        const btnSaveAd = document.getElementById('btn-save-ad');
+        if (btnSaveAd) {
+          btnSaveAd.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+
+            const newTitle = (document.getElementById('edit-ad-title').value || '').trim();
+            const newDescription = (document.getElementById('edit-ad-description').value || '').trim();
+            const newCategory = (document.getElementById('edit-ad-category').value || '').trim();
+            const priceInput = document.getElementById('edit-ad-price').value || '';
+            const newPrice = parseFloat(priceInput || '0');
+
+            if (!newTitle || !newDescription || newPrice <= 0) {
+              showNotification('Заполните заголовок, описание и цену (больше 0)', 'error');
+              return;
+            }
+
+            const body = {
+              title: newTitle,
+              description: newDescription,
+              price: newPrice,
+              category: newCategory || 'general',
+            };
+
+            const images = [];
+            for (const file of editSelectedFiles) {
+              const b64 = await fileToBase64(file);
+              images.push(b64);
+            }
+            if (images.length > 0) {
+              body.images = images;
+            }
+
+            try {
+              const res = await fetch(apiBase + '/ads/' + id, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(body),
+              });
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                showNotification('Ошибка обновления объявления: ' + (data.error || res.status), 'error');
+                return;
+              }
+              showNotification('Объявление обновлено', 'success');
+            } catch (e) {
+              console.error(e);
+              showNotification('Ошибка сети при обновлении объявления', 'error');
+            }
+          });
+        }
+
+        const btnDeleteAdDetail = document.getElementById('btn-delete-ad-detail');
+        if (btnDeleteAdDetail) {
+          btnDeleteAdDetail.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+            if (!confirm('Удалить это объявление?')) {
+              return;
+            }
+            try {
+              const res = await fetch(apiBase + '/ads/' + id, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                },
+              });
+              if (!res.ok) {
+                showNotification('Ошибка удаления объявления: ' + res.status, 'error');
+                return;
+              }
+              showNotification('Объявление удалено', 'success');
+              // Возвращаемся к списку объявлений
+              const detailSectionEl = document.getElementById('ad-detail-section');
+              const searchSectionEl = document.querySelector('.search-section');
+              const createSectionEl = document.querySelector('.create-ad-section');
+              if (detailSectionEl) detailSectionEl.style.display = 'none';
+              if (searchSectionEl) searchSectionEl.style.display = '';
+              if (createSectionEl) createSectionEl.style.display = '';
+              const searchBtn = document.getElementById('btn-search');
+              if (searchBtn) {
+                searchBtn.click();
+              }
+            } catch (e) {
+              console.error(e);
+              showNotification('Ошибка сети при удалении объявления', 'error');
+            }
+          });
+        }
+      }
+    }
+
+    // Загрузка профиля пользователя и его объявлений
+    async function openProfile() {
+      const token = getToken();
+      if (!token) {
+        showNotification('Сначала войдите в систему', 'error');
+        return;
+      }
+
+      try {
+        // Получаем данные пользователя
+        const meRes = await fetch(apiBase + '/users/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!meRes.ok) {
+          showNotification('Не удалось загрузить профиль', 'error');
+          return;
+        }
+        const me = await meRes.json();
+        const userId = me.user_id || me.UserId || me.id || me.Id || '';
+        const userName = me.name || me.Name || me.email || me.Email || '(без имени)';
+
+        // Загружаем все объявления и фильтруем по author_id
+        const adsRes = await fetch(apiBase + '/ads');
+        if (!adsRes.ok) {
+          showNotification('Не удалось загрузить объявления', 'error');
+          return;
+        }
+        const adsData = await adsRes.json();
+        const allAds = adsData.ads || adsData.Ads || [];
+        const myAds = allAds.filter(ad => {
+          const author = ad.author_id || ad.authorId || ad.AuthorId || '';
+          return userId && author === userId;
+        });
+
+        const content = document.getElementById('profile-modal-content');
+        if (!content) return;
+
+        let cardsHTML = '';
+        if (myAds.length === 0) {
+          cardsHTML = `
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <h3>У вас пока нет объявлений</h3>
+              <p>Создайте первое объявление в разделе "Создать объявление"</p>
+            </div>
+          `;
+        } else {
+          cardsHTML = myAds.map(ad => {
+            const title = ad.title || ad.Title || 'Без названия';
+            const id = ad.id || ad.Id || '?';
+            const priceValue = ad.price ?? ad.Price ?? 0;
+            const description = ad.description || ad.Description || 'Нет описания';
+            const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+            const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+
+            let imageHTML = '';
+            if (Array.isArray(imgUrls) && imgUrls.length > 0) {
+              imageHTML = `<img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">`;
+            } else {
+              imageHTML = `
+                <div class="no-image">
+                  <i class="fas fa-image"></i>
+                </div>
+              `;
+            }
+
+            return `
+              <article class="ad-card">
+                ${imageHTML}
+                <div class="ad-content">
+                  <div class="ad-title">${title}</div>
+                  <div class="ad-price">${priceValue} ₽</div>
+                  <div class="ad-category">${categoryName}</div>
+                  <div class="ad-description">${description}</div>
+                  <div class="ad-id"><i class="fas fa-hashtag"></i> ID: ${id}</div>
+                </div>
+              </article>
+            `;
+          }).join('');
+        }
+
+        content.innerHTML = `
+          <h2 class="ad-modal-title">Профиль</h2>
+          <div class="ad-modal-meta">
+            <span><i class="fas fa-user"></i> ${userName}</span>
+            ${me.email || me.Email ? `<span><i class=\"fas fa-envelope\"></i> ${me.email || me.Email}</span>` : ''}
+          </div>
+          <div class="form-group" style="margin: 1rem 0;">
+            <label for="profile-name">Имя</label>
+            <input id="profile-name" type="text" value="${userName}" />
+          </div>
+          <button id="btn-save-profile" class="btn btn-secondary" style="width:auto;margin-bottom:1rem;">
+            <i class="fas fa-save"></i> Сохранить профиль
+          </button>
+          <h3 class="section-title" style="margin-top:1rem; font-size:1.2rem;">
+            <i class="fas fa-bullhorn"></i> Мои объявления (${myAds.length})
+          </h3>
+          <div class="ads-grid" style="margin-top:1rem;">
+            ${cardsHTML}
+          </div>
+        `;
+
+        // Обработчик сохранения профиля
+        const btnSaveProfile = document.getElementById('btn-save-profile');
+        const nameInput = document.getElementById('profile-name');
+        if (btnSaveProfile && nameInput) {
+          btnSaveProfile.addEventListener('click', async () => {
+            const newName = nameInput.value.trim();
+            if (!newName) {
+              showNotification('Имя не может быть пустым', 'error');
+              return;
+            }
+
+            const token = getToken();
+            if (!token) {
+              showNotification('Сначала войдите в систему', 'error');
+              return;
+            }
+
+            try {
+              const res = await fetch(apiBase + '/users/me', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ name: newName }),
+              });
+
+              const data = await res.json().catch(() => ({}));
+
+              if (!res.ok) {
+                showNotification('Ошибка обновления профиля: ' + (data.error || res.status), 'error');
+                return;
+              }
+
+              showNotification('Профиль обновлён', 'success');
+              updateUserInfo();
+            } catch (e) {
+              showNotification('Ошибка сети при обновлении профиля', 'error');
+            }
+          });
+        }
+
+        const modal = document.getElementById('profile-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Добавляем клик по моим объявлениям для открытия страницы объявления
+        const adsGrid = content.querySelector('.ads-grid');
+        if (adsGrid && Array.isArray(myAds) && myAds.length > 0) {
+          const cards = adsGrid.querySelectorAll('.ad-card');
+          cards.forEach((cardEl, idx) => {
+            const ad = myAds[idx];
+            if (!ad) return;
+            const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+            cardEl.addEventListener('click', () => {
+              // Сначала закрываем модалку профиля, затем открываем страницу объявления,
+              // чтобы они не перекрывали друг друга.
+              closeProfileModal();
+              openAdPage(ad, imgUrls);
+            });
+          });
+        }
+
+      } catch (e) {
+        console.error(e);
+        showNotification('Ошибка загрузки профиля', 'error');
+      }
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Логин
+    document.getElementById('btn-login').onclick = async () => {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      if (!email || !password) {
+        showNotification('Введите email и пароль', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch(apiBase + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        
+        if (!res.ok) {
+          showNotification('Ошибка входа: ' + (data.error || res.status), 'error');
+          return;
+        }
+        
+        setToken(data.token);
+        
+        // Очистка полей формы
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        
+      } catch (e) {
+        showNotification('Ошибка сети при входе в систему', 'error');
+      }
+    };
+
+    // Создание объявления
+    document.getElementById('btn-create-ad').onclick = async () => {
+      const token = getToken();
+      if (!token) {
+        showNotification('Сначала войдите в систему', 'error');
+        return;
+      }
+      
+      const title = document.getElementById('ad-title').value;
+      const description = document.getElementById('ad-description').value;
+      const price = parseFloat(document.getElementById('ad-price').value || '0');
+      const category = document.getElementById('ad-category').value || 'general';
+      const files = selectedFiles;
+      
+      if (!title || !description || price <= 0) {
+        showNotification('Заполните обязательные поля: заголовок, описание и цена', 'error');
+        return;
+      }
+      
+      // Показываем индикатор загрузки
+      const originalBtnText = document.getElementById('btn-create-ad').innerHTML;
+      document.getElementById('btn-create-ad').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Публикация...';
+      document.getElementById('btn-create-ad').disabled = true;
+      
+      const images = [];
+      for (const file of files) {
+        const b64 = await fileToBase64(file);
+        images.push(b64);
+      }
+      
+      try {
+        const res = await fetch(apiBase + '/ads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, title, description, price, category, images }),
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          showNotification('Ошибка создания объявления: ' + (data.error || res.status), 'error');
+          return;
+        }
+        
+        showNotification('Объявление успешно создано!', 'success');
+        
+        // Очистка полей формы
+        document.getElementById('ad-title').value = '';
+        document.getElementById('ad-description').value = '';
+        document.getElementById('ad-price').value = '';
+        document.getElementById('ad-images').value = '';
+        selectedFiles = [];
+        document.getElementById('file-list').innerHTML = 'Файлы не выбраны';
+        
+      } catch (e) {
+        showNotification('Ошибка при создании объявления', 'error');
+      } finally {
+        // Восстанавливаем кнопку
+        document.getElementById('btn-create-ad').innerHTML = originalBtnText;
+        document.getElementById('btn-create-ad').disabled = false;
+      }
+    };
+
+    // Поиск объявлений
+    document.getElementById('btn-search').onclick = async () => {
+      const params = new URLSearchParams();
+      const q = document.getElementById('search-query').value;
+      const category = document.getElementById('search-category').value;
+      const min = document.getElementById('search-min').value;
+      const max = document.getElementById('search-max').value;
+      
+      if (q) params.set('query', q);
+      if (category) params.set('category', category);
+      if (min) params.set('min_price', min);
+      if (max) params.set('max_price', max);
+      
+      // Показываем индикатор загрузки
+      const originalBtnText = document.getElementById('btn-search').innerHTML;
+      document.getElementById('btn-search').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
+      document.getElementById('btn-search').disabled = true;
+      
+      // Показываем загрузку в контейнере
+      const container = document.getElementById('ads-container');
+      container.innerHTML = `
+        <div class="image-loading" style="grid-column: 1/-1; height: 100px;"></div>
+      `;
+      
+      try {
+        const res = await fetch(apiBase + '/ads?' + params.toString());
+        const data = await res.json();
+        
+        container.innerHTML = '';
+        
+        const ads = data.ads || data.Ads || [];
+        document.getElementById('results-count').textContent = ads.length;
+        
+        if (Array.isArray(ads)) {
+          if (ads.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>Объявления не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
+              </div>
+            `;
+          } else {
+            for (const ad of ads) {
+              const card = document.createElement('article');
+              card.className = 'ad-card';
+              
+              const title = ad.title || ad.Title || 'Без названия';
+              const id = ad.id || ad.Id || '?';
+              const priceValue = ad.price ?? ad.Price ?? 0;
+              const description = ad.description || ad.Description || 'Нет описания';
+              const categoryName = ad.category || ad.category_id || ad.CategoryId || 'general';
+              const imgUrls = ad.imageUrls || ad.image_urls || ad.ImageUrls || [];
+              
+              let imageHTML = '';
+              if (Array.isArray(imgUrls) && imgUrls.length > 0) {
+        let overlay = '';
+        if (imgUrls.length > 1) {
+          overlay = `
+            <div class="image-count-badge">
+              <i class="fas fa-images"></i> ${imgUrls.length}
+            </div>
+          `;
+        }
+        imageHTML = `
+          <div class="ad-image-wrapper">
+            <img src="${imgUrls[0]}" alt="${title}" class="ad-image" loading="lazy">
+            ${overlay}
+          </div>
+        `;
+              } else {
+                imageHTML = `
+                  <div class="no-image">
+                    <i class="fas fa-image"></i>
+                  </div>
+                `;
+              }
+              
+              card.innerHTML = `
+                ${imageHTML}
+                <div class="ad-content">
+                  <div class="ad-title">${title}</div>
+                  <div class="ad-price">${priceValue} ₽</div>
+                  <div class="ad-category">${categoryName}</div>
+                  <div class="ad-description">${description}</div>
+                  <div class="ad-id"><i class="fas fa-hashtag"></i> ID: ${id}</div>
+                </div>
+              `;
+
+			// Клик по карточке открывает отдельную страницу объявления с возможностью листать картинки
+			card.addEventListener('click', () => {
+			  openAdPage(ad, imgUrls);
+			});
+
+              container.appendChild(card);
+            }
+          }
+        }
+        
+        document.getElementById('search-results').textContent = JSON.stringify(data, null, 2);
+        
+        if (ads.length > 0) {
+          showNotification(`Найдено ${ads.length} объявлений`, 'success');
+        }
+        
+      } catch (e) {
+        showNotification('Ошибка при поиске объявлений', 'error');
+        console.error(e);
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Ошибка загрузки</h3>
+            <p>Попробуйте еще раз</p>
+          </div>
+        `;
+      } finally {
+        // Восстанавливаем кнопку
+        document.getElementById('btn-search').innerHTML = originalBtnText;
+        document.getElementById('btn-search').disabled = false;
+      }
+    };
+
+    // Инициализация при загрузке страницы
+    (function init() {
+      // Инициализация темы
+      initTheme();
+      
+      // Обработчик переключения темы
+      document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+      
+      // Инициализация токена
+      updateUserInfo();
+
+      // Применяем режим сессии (гость/пользователь/не выбран)
+      applySessionMode();
+      
+      // Обработчик выбора файлов
+      document.getElementById('ad-images').addEventListener('change', updateFileList);
+
+      // Если в URL уже указан id объявления — открываем его (deep-link)
+      const initialAdId = getAdIdFromURL();
+      if (initialAdId) {
+        // Если режим ещё не выбран, даём гостевой доступ для просмотра объявления
+        if (!localStorage.getItem('sessionMode')) {
+          localStorage.setItem('sessionMode', 'guest');
+          applySessionMode();
+        }
+        openAdById(initialAdId);
+      }
+
+      // Кнопка выхода
+      document.getElementById('btn-logout').addEventListener('click', () => {
+        clearToken();
+        showNotification('Вы вышли из системы', 'info');
+      });
+
+      // Стартовый экран: обработчики выбора режима
+      const entryRegister = document.getElementById('entry-register');
+      const entryLogin = document.getElementById('entry-login');
+      const entryGuest = document.getElementById('entry-guest');
+
+      if (entryRegister) {
+        entryRegister.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'user');
+          localStorage.setItem('authView', 'register');
+          applySessionMode();
+          const regEmail = document.getElementById('reg-email');
+          if (regEmail) {
+            regEmail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            regEmail.focus();
+          }
+        });
+      }
+
+      if (entryLogin) {
+        entryLogin.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'user');
+          localStorage.setItem('authView', 'login');
+          applySessionMode();
+          const loginEmail = document.getElementById('login-email');
+          if (loginEmail) {
+            loginEmail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            loginEmail.focus();
+          }
+        });
+      }
+
+      if (entryGuest) {
+        entryGuest.addEventListener('click', () => {
+          localStorage.setItem('sessionMode', 'guest');
+          applySessionMode();
+          const searchInput = document.getElementById('search-query');
+          if (searchInput) {
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
+
+      // Кнопка профиля
+      const btnProfile = document.getElementById('btn-profile');
+      if (btnProfile) {
+        btnProfile.addEventListener('click', openProfile);
+      }
+
+      // Кнопка "Назад" на странице объявления
+      const adDetailBack = document.getElementById('ad-detail-back');
+      if (adDetailBack) {
+        adDetailBack.addEventListener('click', () => {
+          const detailSection = document.getElementById('ad-detail-section');
+          const searchSection = document.querySelector('.search-section');
+          const createSection = document.querySelector('.create-ad-section');
+          if (detailSection) detailSection.style.display = 'none';
+          if (searchSection) searchSection.style.display = '';
+          if (createSection) createSection.style.display = '';
+          // Очищаем хэш в адресной строке, чтобы URL оставался "чистым"
+          const cleanUrl = window.location.pathname + window.location.search;
+          history.replaceState(null, '', cleanUrl);
+        });
+      }
+
+      // Закрытие модального окна объявления
+      const adModal = document.getElementById('ad-modal');
+      const adModalClose = document.getElementById('ad-modal-close');
+      if (adModal && adModalClose) {
+        adModalClose.addEventListener('click', closeAdModal);
+        adModal.addEventListener('click', (e) => {
+          if (e.target === adModal || e.target.classList.contains('ad-modal-overlay')) {
+            closeAdModal();
+          }
+        });
+      }
+
+      // Закрытие модального окна профиля
+      const profileModal = document.getElementById('profile-modal');
+      const profileModalClose = document.getElementById('profile-modal-close');
+      if (profileModal && profileModalClose) {
+        profileModalClose.addEventListener('click', closeProfileModal);
+        profileModal.addEventListener('click', (e) => {
+          if (e.target === profileModal || e.target.classList.contains('ad-modal-overlay')) {
+            closeProfileModal();
+          }
+        });
+      }
+      
+      // Добавляем обработчики для клавиши Enter в формах
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            // Если поле в форме логина - вызываем логин
+            if (input.id === 'login-email' || input.id === 'login-password') {
+              document.getElementById('btn-login').click();
+            }
+            // Если поле в форме регистрации - вызываем регистрацию
+            else if (input.id === 'reg-email' || input.id === 'reg-password' || input.id === 'reg-name') {
+              document.getElementById('btn-register').click();
+            }
+            // Если поле в форме поиска - вызываем поиск
+            else if (input.id.includes('search')) {
+              document.getElementById('btn-search').click();
+            }
+          }
+        });
+      });
+      
+      // Показываем уведомление о загрузке
+      setTimeout(() => {
+        showNotification('Добро пожаловать в Moonshine Marketplace!', 'info');
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

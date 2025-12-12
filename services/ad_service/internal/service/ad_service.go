@@ -76,7 +76,20 @@ func (s *AdService) GetAd(ctx context.Context, adID string) (*model.Ad, error) {
 
 // ListAds(filters)
 func (s *AdService) ListAds(ctx context.Context, f Filters) ([]model.Ad, int, error) {
-	return s.repo.Search(ctx, f.Text, f.CategoryID, f.PriceMin, f.PriceMax, f.Condition, f.Limit, f.Offset)
+	ads, total, err := s.repo.Search(ctx, f.Text, f.CategoryID, f.PriceMin, f.PriceMax, f.Condition, f.Limit, f.Offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range ads {
+		images, err := s.repo.ListImages(ctx, ads[i].ID)
+		if err != nil {
+			return nil, 0, err
+		}
+		ads[i].Images = images
+	}
+
+	return ads, total, nil
 }
 
 // UpdateAd(ad_id, user_id, title?, description?, price?, category_id?, condition?, status?)

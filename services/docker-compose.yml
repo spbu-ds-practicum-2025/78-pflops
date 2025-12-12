@@ -106,6 +106,22 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    entrypoint: >
+      sh -c "
+      mc alias set local http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD &&
+      mc anonymous set download local/$MINIO_BUCKET ||
+      echo 'minio-init: failed to set anonymous policy'
+      "
+    restart: "no"
 
   media_service:
     build: ./MediaService
@@ -138,6 +154,39 @@ services:
     command: ["-plaintext", "media_service_app:50053"]
     ports:
       - "${MEDIA_GRPCUI_PORT}:8080"
+    restart: unless-stopped
+
+  # HTTP Gateway (translates HTTP/JSON to gRPC)
+  http_gateway:
+    build:
+      context: .
+      dockerfile: http_gateway/Dockerfile
+    container_name: http_gateway_app
+    depends_on:
+      - user_service
+      - ad_service
+      - media_service
+    environment:
+      HTTP_GATEWAY_PORT: "8081"
+      USER_SERVICE_ADDR: user_service_app:50051
+      AD_SERVICE_ADDR: ad_service_app:50052
+      MEDIA_SERVICE_ADDR: media_service_app:50053
+    restart: unless-stopped
+
+  # API Gateway (Nginx reverse proxy + static frontend)
+  api_gateway:
+    image: nginx:1.27-alpine
+    container_name: api_gateway
+    depends_on:
+      - user_service
+      - ad_service
+      - media_service
+      - http_gateway
+    volumes:
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
     restart: unless-stopped
 
 volumes:
