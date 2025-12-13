@@ -12,3 +12,6 @@ pycryptodome==3.23.0
 setuptools==80.9.0
 typing_extensions==4.15.0
 urllib3==2.5.0
+pytest>=7.0.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0

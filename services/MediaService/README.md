@@ -104,10 +104,10 @@ MINIO_BUCKET	media-service	Бакет для хранения файлов
 
 
 Тестирование
+Сборка среды тестирования
+docker build -t tests -f tests/Dockerfile .
 Запуск тестов
-docker-compose exec media-service python -m pytest tests/
-Тестовый клиент
-python test.py
+docker run --rm tests
 
 
 Генерация protobuf
